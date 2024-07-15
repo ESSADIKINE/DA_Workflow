@@ -1,18 +1,16 @@
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const articleRoutes = require('./routes/articleRoutes');
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/authRoutes.js';
+import config from './config/config.js';
 
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Middleware to parse JSON requests
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(cookieParser());
 
-// Use article routes
-app.use('/articles', articleRoutes);
+app.use('/api/v1/auth', authRoutes);
 
-// Start the Express server
+const port = config.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`App running on port ${port}...`);
 });

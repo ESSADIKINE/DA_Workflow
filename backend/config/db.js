@@ -1,33 +1,31 @@
-const sql = require('mssql');
+import sql from 'mssql';
+import config from './config.js';
 
-const config = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: process.env.DB_SERVER,
-    database: process.env.DB_DATABASE,
+const dbConfig = {
+    user: config.DB_USER,
+    password: config.DB_PASSWORD,
+    server: config.DB_SERVER,
+    database: config.DB_DATABASE,
     options: {
-        encrypt: true,
-        trustServerCertificate: true
+        encrypt: true, // Enable encryption
+        enableArithAbort: true,
+        trustServerCertificate: true,
+    },
+  };
+
+let pool;
+
+const getConnection = async () => {
+  try {
+    if (!pool) {
+      pool = await sql.connect(dbConfig);
+      console.log('Connected to SQL Server')
     }
+    return pool;
+  } catch (err) {
+    console.error(`Database connection error: ${err.message}`);
+    throw new Error('Database connection error');
+  }
 };
 
-// Connect to SQL Server
-const poolPromise = sql.connect(config)
-    .then(pool => {
-        console.log('Connected to SQL Server');
-        return pool;
-    })
-    .catch(err => {
-        console.error('SQL Server connection error: ', err);
-        throw err;
-    });
-
-// Handling disconnection and connection errors
-sql.on('error', err => {
-    console.error('SQL Server error: ', err);
-});
-
-module.exports = {
-    sql,
-    poolPromise
-};
+export default getConnection;
