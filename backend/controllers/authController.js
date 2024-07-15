@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
-import { createUser, findUserByEmail, findUserById , getAllUsers } from '../models/userModel.js';
+import { createCollaborator, findCollaboratorByEmail, findCollaboratorById } from '../models/userModel.js';
 import { correctPassword, createSendToken } from '../utils/util.js';
 
 export const signup = async (req, res) => {
@@ -13,7 +13,7 @@ export const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, parseInt(process.env.HASH_SALT, 10));
     const userId = nanoid();
 
-    const user = await createUser({ id: userId, email, password: hashedPassword });
+    const user = await createCollaborator({ id: userId, email, password: hashedPassword });
 
     if (!user) throw new Error('Sign up error. Please try again.');
 
@@ -33,7 +33,7 @@ export const login = async (req, res) => {
 
     if (!email || !password) throw new Error('Please provide email and password');
 
-    const user = await findUserByEmail(email);
+    const user = await findCollaboratorByEmail(email);
 
     if (!user || !(await correctPassword(password, user.password)))
       throw new Error('Incorrect email or password');
@@ -66,7 +66,7 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    const currentUser = await findUserById(decoded.id);
+    const currentUser = await findCollaboratorById(decoded.id);
 
     if (!currentUser) throw new Error('User not found');
 
@@ -90,24 +90,3 @@ export const logout = (req, res) => {
 
   res.status(200).json({ status: 'success' });
 };
-
-
-
-// Add this function to handle getting all users
-export const getUsers = async (req, res) => {
-    try {
-      const users = await getAllUsers();
-      res.status(200).json({
-        status: 'success',
-        data: {
-          users,
-        },
-      });
-    } catch (err) {
-      console.log(`⛔⛔⛔ GET USERS: ${err.message}`);
-      res.status(500).json({
-        status: 'fail',
-        message: err.message,
-      });
-    }
-  };
