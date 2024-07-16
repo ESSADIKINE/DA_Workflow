@@ -1,8 +1,4 @@
-import { getAllCollaborators,
-        createCollaborator,
-        updateCollaboratorById,
-        findCollaboratorByName
- } from '../models/userModel.js';
+import { getAllCollaborators, createCollaborator, updateCollaboratorById, findCollaboratorBySearch, deleteCollaboratorById } from '../models/userModel.js';
 
 export const getCollaborators = async (req, res) => {
     try {
@@ -41,22 +37,36 @@ export const getCollaborators = async (req, res) => {
     }
 };
 
+
 export const updateCollaborator = async (req, res) => {
     try {
-        const id = req.params.id;
+        const { id } = req.params;
         const collaborator = req.body;
+
+        // Check for missing parameters
+        const { CO_Nom, CO_Prenom, CO_EMail,CO_Fonction } = collaborator;
+        if (!CO_Nom || !CO_Prenom || !CO_EMail || !CO_Fonction) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'One or more parameters are missing or undefined'
+            });
+        }
+
+        console.log(`Received update request for collaborator with id: ${id}`);
         const result = await updateCollaboratorById(id, collaborator);
+        console.log('Update result:', result);
         res.status(200).json({
             status: 'success',
             data: {
-                collaborator: result
-            }
+                message: 'Collaborator updated successfully',
+                result,
+            },
         });
     } catch (err) {
         console.log(`UPDATE COLLABORATOR: ${err.message}`);
         res.status(500).json({
             status: 'fail',
-            message: err.message
+            message: err.message,
         });
     }
 };
@@ -64,7 +74,7 @@ export const updateCollaborator = async (req, res) => {
 export const searchCollaborator = async (req, res) => {
     try {
         const { key } = req.query;
-        const collaborators = await findCollaboratorByName(key);
+        const collaborators = await findCollaboratorBySearch(key);
         res.status(200).json({
             status: 'success',
             data: {
@@ -79,3 +89,29 @@ export const searchCollaborator = async (req, res) => {
         });
     }
 };
+
+export const deleteCollaborator = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await deleteCollaboratorById(id);
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'Collaborator not found'
+            });
+        }
+        res.status(200).json({
+            status: 'success',
+            data: {
+                message: 'Collaborator deleted successfully'
+            }
+        });
+    } catch (err) {
+        console.log(`DELETE COLLABORATOR: ${err.message}`);
+        res.status(500).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};
+  

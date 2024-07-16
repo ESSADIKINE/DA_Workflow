@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 import { createCollaborator, findCollaboratorByEmail, findCollaboratorById } from '../models/userModel.js';
 import { correctPassword, createSendToken } from '../utils/util.js';
+import getConnection from '../config/db.js';
+import sql from 'mssql';
 
 export const signup = async (req, res) => {
   try {
@@ -27,6 +29,7 @@ export const signup = async (req, res) => {
   }
 };
 
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -35,7 +38,7 @@ export const login = async (req, res) => {
 
     const user = await findCollaboratorByEmail(email);
 
-    if (!user || !(await correctPassword(password, user.password)))
+    if (!user || !(await correctPassword(password, user.CO_Pass)))
       throw new Error('Incorrect email or password');
 
     createSendToken(user, res);
@@ -89,4 +92,43 @@ export const logout = (req, res) => {
   });
 
   res.status(200).json({ status: 'success' });
+};
+
+export const updateCollaboratorPasswordById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { CO_Pass } = req.body;
+
+    if (!CO_Pass) throw new Error('Password not provided');
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(CO_Pass, parseInt(process.env.HASH_SALT, 10));
+
+    const pool = await getConnection();
+    const query = `
+      UPDATE ${process.env.DB_USERNAME_TABLE}
+      SET CO_Pass = @CO_Pass
+      WHERE CO_No = @id
+    `;
+
+    const result = await pool.request()
+      .input('CO_Pass', sql.NVarChar, hashedPassword)
+      .input('id', sql.Int, id)
+      .query(query);
+
+    console.log('Update Password Result:', result);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        message: 'Password updated successfully',
+        result,
+      },
+    });
+  } catch (err) {
+    console.log(`UPDATE PASSWORD: ${err.message}`);
+    res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
 };
