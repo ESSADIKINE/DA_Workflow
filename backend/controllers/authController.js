@@ -1,10 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
-import { createCollaborator, findCollaboratorByEmail, findCollaboratorById } from '../models/userModel.js';
+import { createCollaborator, findCollaboratorByEmail, findCollaboratorById, updateCollaboratorPasswordInDB } from '../models/userModel.js';
 import { correctPassword, createSendToken } from '../utils/util.js';
-import getConnection from '../config/db.js';
-import sql from 'mssql';
 
 export const signup = async (req, res) => {
   try {
@@ -21,7 +19,7 @@ export const signup = async (req, res) => {
 
     createSendToken({ id: userId, email }, res);
   } catch (err) {
-    console.log(`⛔⛔⛔ SIGNUP: ${err.message}`);
+    console.log(`SIGNUP: ${err.message}`);
     res.status(404).json({
       status: 'fail',
       message: err.message,
@@ -43,7 +41,7 @@ export const login = async (req, res) => {
 
     createSendToken(user, res);
   } catch (err) {
-    console.log(`⛔⛔⛔ LOGIN: ${err.message}`);
+    console.log(`LOGIN: ${err.message}`);
     res.status(401).json({
       status: 'fail',
       message: err.message,
@@ -104,17 +102,7 @@ export const updateCollaboratorPasswordById = async (req, res) => {
     // Hash the new password
     const hashedPassword = await bcrypt.hash(CO_Pass, parseInt(process.env.HASH_SALT, 10));
 
-    const pool = await getConnection();
-    const query = `
-      UPDATE ${process.env.DB_USERNAME_TABLE}
-      SET CO_Pass = @CO_Pass
-      WHERE CO_No = @id
-    `;
-
-    const result = await pool.request()
-      .input('CO_Pass', sql.NVarChar, hashedPassword)
-      .input('id', sql.Int, id)
-      .query(query);
+    const result = await updateCollaboratorPasswordInDB(id, hashedPassword);
 
     console.log('Update Password Result:', result);
     res.status(200).json({

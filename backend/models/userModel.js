@@ -147,3 +147,23 @@ export const deleteCollaboratorById = async (id) => {
     throw new Error('Database error during collaborator deletion');
   }
 };
+
+
+export const updateCollaboratorPasswordInDB = async (id, hashedPassword) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      UPDATE ${process.env.DB_USERNAME_TABLE}
+      SET CO_Pass = @CO_Pass
+      WHERE CO_No = @id
+    `;
+    const result = await pool.request()
+      .input('CO_Pass', sql.NVarChar, hashedPassword)
+      .input('id', sql.Int, id)
+      .query(query);
+    return result;
+  } catch (err) {
+    console.log(`MODEL UPDATE PASSWORD: ${err.message}`);
+    throw new Error('Database error during password update');
+  }
+};
