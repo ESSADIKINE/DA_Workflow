@@ -1,7 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { getAllArticles, editArticle, searchArticle, getArticlesByFournisseur } from '../controllers/articleController.js';
 const router = express.Router();
-const articleController = require('../controllers/articleController');
 
-router.get('/', articleController.getArticles);
+router.get('/articles', getAllArticles);
+router.put('/articles/:id', editArticle);
+router.get('/articles/search', searchArticle);
+router.get('/articles/fournisseur/:fournisseurId', getArticlesByFournisseur);
 
-module.exports = router;
+export default router;
