@@ -1,14 +1,23 @@
 import express from 'express';
-import { addCollaborator, updateCollaborator, searchCollaborator, getCollaborators, deleteCollaborator } from '../controllers/userController.js';
+import { 
+  addCollaborator, 
+  updateCollaborator, 
+  searchCollaborator, 
+  getCollaborators, 
+  deleteCollaborator 
+} from '../controllers/userController.js';
 import { updateCollaboratorPasswordById } from '../controllers/authController.js';
+import { protect, isAdmin, isAchteur } from '../utils/middleware.js';
+
 const router = express.Router();
 
-router.get('/collaborators', getCollaborators);
-router.post('/collaborators', addCollaborator);
-router.put('/collaborators/:id', updateCollaborator);
-router.get('/collaborators/search', searchCollaborator);
-router.delete('/collaborators/:id', deleteCollaborator); // Add this line
-router.patch('/collaborators/:id/password', updateCollaboratorPasswordById);
+router.use(protect);
 
+router.get('/collaborators', isAdmin, getCollaborators);
+router.post('/collaborators', isAdmin, addCollaborator);
+router.put('/collaborators/:id', isAdmin, updateCollaborator);
+router.get('/collaborators/search', isAdmin, searchCollaborator);
+router.delete('/collaborators/:id', isAdmin, deleteCollaborator);
+router.patch('/collaborators/:id/password', isAdmin, updateCollaboratorPasswordById);
 
 export default router;

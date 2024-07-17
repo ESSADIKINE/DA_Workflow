@@ -1,32 +1,46 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { nanoid } from 'nanoid';
-import { createCollaborator, findCollaboratorByEmail, findCollaboratorById, updateCollaboratorPasswordInDB } from '../models/userModel.js';
-import { correctPassword, createSendToken } from '../utils/util.js';
+import { promisify } from 'util';
+import { findCollaboratorByEmail, findCollaboratorById, updateCollaboratorPasswordInDB } from '../models/userModel.js';
 
-export const signup = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) throw new Error('Email or Password not provided');
-
-    const hashedPassword = await bcrypt.hash(password, parseInt(process.env.HASH_SALT, 10));
-    const userId = nanoid();
-
-    const user = await createCollaborator({ id: userId, email, password: hashedPassword });
-
-    if (!user) throw new Error('Sign up error. Please try again.');
-
-    createSendToken({ id: userId, email }, res);
-  } catch (err) {
-    console.log(`SIGNUP: ${err.message}`);
-    res.status(404).json({
-      status: 'fail',
-      message: err.message,
-    });
-  }
+export const correctPassword = async (candidatePassword, userPassword) => {
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
+export const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
+export const verifyToken = async (token) => {
+  return await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+};
+
+export const createSendToken = (user, res) => {
+  const token = signToken(user.CO_No);
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie(process.env.COOKIE_JWT, token, cookieOptions);
+
+  user.CO_Pass = undefined;
+
+  res.status(200).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
 
 export const login = async (req, res) => {
   try {
@@ -42,40 +56,6 @@ export const login = async (req, res) => {
     createSendToken(user, res);
   } catch (err) {
     console.log(`LOGIN: ${err.message}`);
-    res.status(401).json({
-      status: 'fail',
-      message: err.message,
-    });
-  }
-};
-
-export const protect = async (req, res, next) => {
-  let token;
-
-  try {
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.jwt) {
-      token = req.cookies.jwt;
-    }
-
-    if (!token) {
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Token not valid. Please log in again.',
-      });
-    }
-
-    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    const currentUser = await findCollaboratorById(decoded.id);
-
-    if (!currentUser) throw new Error('User not found');
-
-    req.user = currentUser;
-    res.locals.user = currentUser;
-
-    next();
-  } catch (err) {
     res.status(401).json({
       status: 'fail',
       message: err.message,

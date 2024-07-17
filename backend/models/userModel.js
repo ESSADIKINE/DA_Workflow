@@ -1,21 +1,6 @@
 import getConnection from '../config/db.js';
 import sql from 'mssql';
 
-export const createUser = async ({ id, email, password }) => {
-  try {
-    const pool = await getConnection();
-    const query = `
-      INSERT INTO ${process.env.DB_USERNAME_TABLE} (CO_No, CO_EMail, CO_Matricule)
-      VALUES ('${id}', '${email}', '${password}')
-    `;
-    const result = await pool.request().query(query);
-    return result;
-  } catch (err) {
-    console.log(`MODEL CREATE USER: ${err.message}`);
-    throw new Error('Database error during user creation');
-  }
-};
-
 export const findCollaboratorByEmail = async (email) => {
   try {
     const pool = await getConnection();
@@ -66,7 +51,7 @@ export const getAllCollaborators = async () => {
 
 export const createCollaborator = async (collaborator) => {
   try {
-    const { CO_No, CO_Nom, CO_Prenom, CO_EMail, CO_Fonction } = collaborator;
+    const { CO_No, CO_Nom, CO_Prenom, CO_EMail, CO_Fonction, DA_Role } = collaborator;
     const pool = await getConnection();
     const query = `
       INSERT INTO ${process.env.DB_USERNAME_TABLE} (CO_Nom, CO_Prenom, CO_EMail, CO_Fonction)
@@ -79,6 +64,7 @@ export const createCollaborator = async (collaborator) => {
       .input('CO_Prenom', sql.NVarChar, CO_Prenom)
       .input('CO_EMail', sql.NVarChar, CO_EMail)
       .input('CO_Fonction', sql.NVarChar, CO_Fonction)
+      .input('CO_EMail', sql.NVarChar, DA_Role)
       .query(query);
     return result;
   } catch (err) {
@@ -130,7 +116,6 @@ export const findCollaboratorBySearch = async (key) => {
   }
 };
 
-
 export const deleteCollaboratorById = async (id) => {
   try {
     const pool = await getConnection();
@@ -147,7 +132,6 @@ export const deleteCollaboratorById = async (id) => {
     throw new Error('Database error during collaborator deletion');
   }
 };
-
 
 export const updateCollaboratorPasswordInDB = async (id, hashedPassword) => {
   try {
