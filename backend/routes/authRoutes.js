@@ -1,5 +1,6 @@
 import express from 'express';
 import { signup, login, logout, protect} from '../controllers/authController.js';
+import { isDG, isAdmin, isAchteur, isMagasinier, isDemandeur } from '../utils/middleware.js';
 
 const router = express.Router();
 

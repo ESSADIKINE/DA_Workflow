@@ -25,7 +25,7 @@ export const searchFournisseurFromDB = async (key) => {
             SELECT DISTINCT AF.[CT_Num], C.[CT_Nom], C.[CT_Prenom], C.[CT_EMail],C.[CT_Telephone],C.[CT_TelPortable],C.[CT_Telecopie]
             FROM F_ARTFOURNISS AF
             JOIN F_CONTACTT C ON AF.CT_Num = C.CT_Num
-            WHERE CT_Nom LIKE @key OR CT_Prenom LIKE @key OR CT_Num LIKE @key
+            WHERE CT_Nom LIKE @key OR CT_Prenom LIKE @key OR C.CT_Num LIKE @key
             ORDER BY CT_Num
         `;
         const result = await pool.request()
