@@ -36,20 +36,12 @@ export const findCollaboratorByEmail = async (email) => {
 
 export const findCollaboratorById = async (id) => {
   try {
-    console.log(`Looking for user with ID: ${id}`);  // Logging the ID being looked up
     const pool = await getConnection();
     const query = `
       SELECT * FROM ${process.env.DB_USERNAME_TABLE}
-      WHERE CO_No = @id
+      WHERE CO_No = '${id}'
     `;
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .query(query);
-
-    if (!result.recordset[0]) {
-      console.log(`No user found with ID: ${id}`);
-    }
-
+    const result = await pool.request().query(query);
     return result.recordset[0];
   } catch (err) {
     console.log(`MODEL FIND USER BY ID: ${err.message}`);

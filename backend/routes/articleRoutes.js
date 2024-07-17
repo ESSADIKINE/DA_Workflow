@@ -6,6 +6,6 @@ router.get('/articles', getAllArticles);
 router.put('/articles/:id', editArticle);
 router.get('/articles/search', searchArticle);
 router.get('/articles/fournisseur/:fournisseurId', getArticlesByFournisseur);
-router.get('/articles/stock', getArticlesInStock);
+router.get('/articles/stock', getArticlesInStock); // Nouvelle route pour les articles en stock
 
 export default router;

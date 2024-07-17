@@ -27,6 +27,7 @@ export const signup = async (req, res) => {
   }
 };
 
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -68,19 +69,13 @@ export const protect = async (req, res, next) => {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
     const currentUser = await findCollaboratorById(decoded.id);
 
-    if (!currentUser) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'User not found',
-      });
-    }
+    if (!currentUser) throw new Error('User not found');
 
     req.user = currentUser;
     res.locals.user = currentUser;
 
     next();
   } catch (err) {
-    console.log(`PROTECT: ${err.message}`);
     res.status(401).json({
       status: 'fail',
       message: err.message,
