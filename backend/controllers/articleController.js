@@ -1,4 +1,4 @@
-import { getAllArticlesFromDB, updateArticleInDB, searchArticlesInDB, getArticlesByFournisseurFromDB } from '../models/articleModel.js';
+import { getAllArticlesFromDB, updateArticleInDB, searchArticlesInDB, getArticlesByFournisseurFromDB, getArticlesInStockFromDB } from '../models/articleModel.js';
 
 export const getAllArticles = async (req, res) => {
     try {
@@ -71,6 +71,24 @@ export const getArticlesByFournisseur = async (req, res) => {
         });
     } catch (err) {
         console.log(`GET ARTICLES BY FOURNISSEUR: ${err.message}`);
+        res.status(500).json({
+            status: 'fail',
+            message: err.message,
+        });
+    }
+};
+
+export const getArticlesInStock = async (req, res) => {
+    try {
+        const articles = await getArticlesInStockFromDB();
+        res.status(200).json({
+            status: 'success',
+            data: {
+                articles,
+            },
+        });
+    } catch (err) {
+        console.log(`GET ARTICLES IN STOCK: ${err.message}`);
         res.status(500).json({
             status: 'fail',
             message: err.message,

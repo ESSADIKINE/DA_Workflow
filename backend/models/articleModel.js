@@ -80,3 +80,20 @@ export const getArticlesByFournisseurFromDB = async (fournisseurId) => {
         throw new Error('Database error during fetching articles by fournisseur');
     }
 };
+
+export const getArticlesInStockFromDB = async () => {
+    try {
+        const pool = await getConnection();
+        const query = `
+            SELECT A.[AR_Ref], A.[AR_Design], S.[DE_No],S.[AS_QteMini], S.[AS_QteMaxi], S.[AS_QteSto], S.[AS_MontSto]
+            FROM F_ARTICLE A
+            JOIN F_ARTSTOCK S ON A.AR_Ref = S.AR_Ref
+            WHERE S.AS_QteSto > 0
+        `;
+        const result = await pool.request().query(query);
+        return result.recordset;
+    } catch (err) {
+        console.log(`MODEL GET ARTICLES IN STOCK: ${err.message}`);
+        throw new Error('Database error during fetching articles in stock');
+    }
+};
