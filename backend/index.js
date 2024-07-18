@@ -5,6 +5,7 @@ import collaboratorRoutes from './routes/userRoutes.js';
 import articleRoutes from './routes/articleRoutes.js';
 import fournisseurRoutes from './routes/fournisseurRoutes.js';
 // import daRoutes from './routes/daRoutes.js';
+// import bcRoutes from './routes/bcRoutes.js';
 import config from './config/config.js';
 
 const app = express();
@@ -17,6 +18,7 @@ app.use('/api/v1', collaboratorRoutes);
 app.use('/api/v1', articleRoutes);
 app.use('/api/v1', fournisseurRoutes);
 // app.use('/api/v1', daRoutes);
+// app.use('/api/v1', bcRoutes);
 
 
 
