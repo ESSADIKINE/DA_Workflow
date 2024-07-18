@@ -20,8 +20,6 @@ app.use('/api/v1', fournisseurRoutes);
 // app.use('/api/v1', daRoutes);
 // app.use('/api/v1', bcRoutes);
 
-
-
 const port = config.PORT || 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
