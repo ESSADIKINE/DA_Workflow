@@ -13,6 +13,9 @@ export default {
   COOKIE_JWT: process.env.COOKIE_JWT,
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT || 3000,
-  
-  DB_USERNAME_TABLE:process.env.DB_USERNAME_TABLE,
+  ID_LENGTH: parseInt(process.env.ID_LENGTH, 10),
+  ID_ALPHABET: process.env.ID_ALPHABET,
+
+  // MongoDB configuration
+  MONGO_URI: process.env.MONGO_URI,
 };

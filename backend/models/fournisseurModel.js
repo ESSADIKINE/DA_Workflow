@@ -1,4 +1,4 @@
-import getConnection from '../config/db.js';
+import getConnection from '../config/dbsql.js';
 import sql from 'mssql';
 
 export const getAllFournisseursFromDB = async () => {

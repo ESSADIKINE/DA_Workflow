@@ -1,4 +1,4 @@
-import getConnection from '../config/db.js';
+import getConnection from '../config/dbsql.js';
 import sql from 'mssql';
 
 export const findCollaboratorByEmail = async (email) => {
@@ -6,7 +6,7 @@ export const findCollaboratorByEmail = async (email) => {
     const pool = await getConnection();
     const query = `
       SELECT CO_No, CO_Nom, CO_Prenom, CO_EMail, CO_Fonction, cbCreation, CO_Pass
-      FROM ${process.env.DB_USERNAME_TABLE}
+      FROM [DSTM].[dbo].[F_COLLABORATEUR]
       WHERE CO_EMail = @Email
     `;
     const result = await pool.request()
@@ -23,7 +23,7 @@ export const findCollaboratorById = async (id) => {
   try {
     const pool = await getConnection();
     const query = `
-      SELECT * FROM ${process.env.DB_USERNAME_TABLE}
+      SELECT * FROM [DSTM].[dbo].[F_COLLABORATEUR]
       WHERE CO_No = '${id}'
     `;
     const result = await pool.request().query(query);
@@ -39,7 +39,7 @@ export const getAllCollaborators = async () => {
     const pool = await getConnection();
     const query = `
     SELECT CO_No, CO_Nom, CO_Prenom, CO_EMail, CO_Fonction, cbCreation
-    FROM ${process.env.DB_USERNAME_TABLE}
+    FROM [DSTM].[dbo].[F_COLLABORATEUR]
 `;
     const result = await pool.request().query(query);
     return result.recordset;
@@ -54,7 +54,7 @@ export const createCollaborator = async (collaborator) => {
     const { CO_No, CO_Nom, CO_Prenom, CO_EMail, CO_Fonction, DA_Role } = collaborator;
     const pool = await getConnection();
     const query = `
-      INSERT INTO ${process.env.DB_USERNAME_TABLE} (CO_Nom, CO_Prenom, CO_EMail, CO_Fonction)
+      INSERT INTO [DSTM].[dbo].[F_COLLABORATEUR] (CO_Nom, CO_Prenom, CO_EMail, CO_Fonction)
       VALUES ('${CO_Nom}', '${CO_Prenom}', '${CO_EMail}', '${CO_Fonction}')
     `;
     console.log(query);
@@ -78,7 +78,7 @@ export const updateCollaboratorById = async (id, collaborator) => {
     const { CO_Nom, CO_Prenom, CO_EMail, CO_Fonction } = collaborator;
     const pool = await getConnection();
     const query = `
-      UPDATE ${process.env.DB_USERNAME_TABLE}
+      UPDATE [DSTM].[dbo].[F_COLLABORATEUR]
       SET CO_Nom = '${CO_Nom}', CO_Prenom = '${CO_Prenom}', CO_EMail = '${CO_EMail}', CO_Fonction = '${CO_Fonction}'
       WHERE CO_No = ${id}
     `;
@@ -103,7 +103,7 @@ export const findCollaboratorBySearch = async (key) => {
     const pool = await getConnection();
     const query = `
       SELECT CO_No, CO_Nom, CO_Prenom, CO_EMail, CO_Fonction, cbCreation
-      FROM ${process.env.DB_USERNAME_TABLE}
+      FROM [DSTM].[dbo].[F_COLLABORATEUR]
       WHERE CO_Nom LIKE @Search OR CO_Prenom LIKE @Search OR CO_EMail LIKE @Search
     `;
     const result = await pool.request()
@@ -137,7 +137,7 @@ export const updateCollaboratorPasswordInDB = async (id, hashedPassword) => {
   try {
     const pool = await getConnection();
     const query = `
-      UPDATE ${process.env.DB_USERNAME_TABLE}
+      UPDATE [DSTM].[dbo].[F_COLLABORATEUR]
       SET CO_Pass = @CO_Pass
       WHERE CO_No = @id
     `;
