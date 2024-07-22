@@ -3,7 +3,7 @@ import sql from 'mssql';
 
 export const createDemandeInDB = async (demande) => {
   try {
-    const { AR_Ref, AR_Design, Qty, description, Demande_statut = 'Demander' } = demande;
+    const { AR_Ref, AR_Design, Qty, description, Demande_statut = 'Demander', email } = demande;
     const pool = await getConnection();
     const result = await pool.request()
       .input('AR_Ref', sql.VarChar(50), AR_Ref)
@@ -11,8 +11,9 @@ export const createDemandeInDB = async (demande) => {
       .input('Qty', sql.Int, Qty)
       .input('description', sql.VarChar(255), description)
       .input('Demande_statut', sql.VarChar(100), Demande_statut)
-      .query(`INSERT INTO DA_LIST (AR_Ref, AR_Design, Qty, description, Demande_statut) 
-              VALUES (@AR_Ref, @AR_Design, @Qty, @description, @Demande_statut); 
+      .input('email', sql.VarChar(100), email)
+      .query(`INSERT INTO DA_LIST (AR_Ref, AR_Design, Qty, description, Demande_statut, email) 
+              VALUES (@AR_Ref, @AR_Design, @Qty, @description, @Demande_statut, @email); 
               SELECT * FROM DA_LIST WHERE DA_id = SCOPE_IDENTITY();`);
     return result.recordset[0];
   } catch (err) {
@@ -24,7 +25,21 @@ export const createDemandeInDB = async (demande) => {
 export const getDemandesFromDB = async () => {
   try {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM DA_LIST');
+    const result = await pool.request().query(`
+      SELECT 
+        u.Nom, 
+        u.Prenom, 
+        u.Email, 
+        l.AR_Ref, 
+        l.AR_Design, 
+        l.Qty, 
+        l.Date_De_Creation, 
+        l.Demande_statut
+      FROM 
+        DA_LIST l
+      JOIN 
+        DA_USERS u ON l.email = u.Email;
+    `);
     return result.recordset;
   } catch (err) {
     console.log(`MODEL GET DEMANDES: ${err.message}`);
@@ -48,7 +63,7 @@ export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
 
 export const updateDemandeInDB = async (id, demande) => {
   try {
-    const { AR_Ref, AR_Design, Qty, description, Demande_statut } = demande;
+    const { AR_Ref, AR_Design, Qty, description, Demande_statut, email } = demande;
     const pool = await getConnection();
     const result = await pool.request()
       .input('AR_Ref', sql.VarChar(50), AR_Ref)
@@ -56,9 +71,10 @@ export const updateDemandeInDB = async (id, demande) => {
       .input('Qty', sql.Int, Qty)
       .input('description', sql.VarChar(255), description)
       .input('Demande_statut', sql.VarChar(100), Demande_statut)
+      .input('email', sql.VarChar(100), email)
       .input('id', sql.Int, id)
       .query(`UPDATE DA_LIST SET AR_Ref = @AR_Ref, AR_Design = @AR_Design, Qty = @Qty, 
-              description = @description, Demande_statut = @Demande_statut 
+              description = @description, Demande_statut = @Demande_statut, email = @email
               WHERE DA_id = @id;
               SELECT * FROM DA_LIST WHERE DA_id = @id;`);
     return result.recordset[0];

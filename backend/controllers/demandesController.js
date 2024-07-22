@@ -2,8 +2,10 @@ import { createDemandeInDB, getDemandesFromDB, getDemandeBySearchInDB, updateDem
 
 export const createDemande = async (req, res) => {
   try {
-    const demande = req.body;
-    const newDemande = await createDemandeInDB(demande);
+    console.log(req.user); // Add this line
+    const { AR_Ref, AR_Design, Qty, description, Demande_statut } = req.body;
+    const email = req.user.Email; // Ensure this matches the user property name from your middleware
+    const newDemande = await createDemandeInDB({ AR_Ref, AR_Design, Qty, description, Demande_statut, email });
     res.status(201).json({
       status: 'success',
       data: newDemande,
