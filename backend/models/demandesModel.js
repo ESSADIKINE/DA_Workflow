@@ -47,12 +47,32 @@ export const getDemandesFromDB = async () => {
   }
 };
 
+import getConnection from '../config/dbConfig.js';
+import sql from 'mssql';
+
 export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
   try {
     const pool = await getConnection();
-    let query = 'SELECT * FROM DA_LIST WHERE 1=1';
-    if (AR_Ref) query += ` AND AR_Ref LIKE '%${AR_Ref}%'`;
-    if (AR_Design) query += ` AND AR_Design LIKE '%${AR_Design}%'`;
+    let query = `
+      SELECT 
+        u.Nom, 
+        u.Prenom, 
+        u.Email, 
+        l.AR_Ref, 
+        l.AR_Design, 
+        l.Qty, 
+        l.Date_De_Creation, 
+        l.Demande_statut
+      FROM 
+        DA_LIST l
+      JOIN 
+        DA_USERS u ON l.email = u.Email
+      WHERE 1=1
+    `;
+    
+    if (AR_Ref) query += ` AND l.AR_Ref LIKE '%${AR_Ref}%'`;
+    if (AR_Design) query += ` AND l.AR_Design LIKE '%${AR_Design}%'`;
+
     const result = await pool.request().query(query);
     return result.recordset;
   } catch (err) {
@@ -60,6 +80,7 @@ export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
     throw new Error('Database error during demande search');
   }
 };
+
 
 export const updateDemandeInDB = async (id, demande) => {
   try {
