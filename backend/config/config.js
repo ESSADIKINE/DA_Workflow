@@ -16,6 +16,4 @@ export default {
   ID_LENGTH: parseInt(process.env.ID_LENGTH, 10),
   ID_ALPHABET: process.env.ID_ALPHABET,
 
-  // MongoDB configuration
-  MONGO_URI: process.env.MONGO_URI,
 };

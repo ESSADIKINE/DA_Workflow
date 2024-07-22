@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 import { findUserById } from '../models/userModel.js';
 
-// Middleware to check if the user is authenticated
 export const protect = async (req, res, next) => {
   let token;
 
@@ -40,7 +39,6 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Middleware to check if the user has admin privileges
 export const isAdmin = (req, res, next) => {
   if (req.user.Role === 'admin') {
     return next();
@@ -51,7 +49,6 @@ export const isAdmin = (req, res, next) => {
   });
 };
 
-// Middleware to check if the user has acheteur privileges
 export const isAchteur = (req, res, next) => {
   if (req.user.Role === 'achteur') {
     return next();
@@ -62,7 +59,6 @@ export const isAchteur = (req, res, next) => {
   });
 };
 
-// Middleware to check if the user has dg (Directeur Général) privileges
 export const isDG = (req, res, next) => {
   if (req.user.Role === 'dg') {
     return next();
@@ -73,7 +69,6 @@ export const isDG = (req, res, next) => {
   });
 };
 
-// Middleware to check if the user has demandeur privileges
 export const isDemandeur = (req, res, next) => {
   if (req.user.Role === 'demandeur') {
     return next();
@@ -84,7 +79,6 @@ export const isDemandeur = (req, res, next) => {
   });
 };
 
-// Middleware to check if the user has magasinier privileges
 export const isMagasinier = (req, res, next) => {
   if (req.user.Role === 'magasinier') {
     return next();

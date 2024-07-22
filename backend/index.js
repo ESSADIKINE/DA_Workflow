@@ -6,12 +6,8 @@ import articleRoutes from './routes/articleRoutes.js';
 import fournisseurRoutes from './routes/fournisseurRoutes.js';
 import demandesRoutes from './routes/demandesRoutes.js';
 import config from './config/config.js';
-import connectMongo from './config/dbmongo.js';
 
 const app = express();
-
-// Connect to MongoDB
-connectMongo();
 
 app.use(express.json());
 app.use(cookieParser());

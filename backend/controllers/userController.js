@@ -30,7 +30,6 @@ export const addUser = async (req, res) => {
     try {
       const { Email, Pass, Nom, Prenom, Role } = req.body;
   
-      // Check if the email already exists
       const existingUser = await findUserByEmail(Email);
       if (existingUser) {
         return res.status(400).json({
@@ -39,10 +38,8 @@ export const addUser = async (req, res) => {
         });
       }
   
-      // Hash the password
       const hashedPassword = await bcrypt.hash(Pass, parseInt(process.env.HASH_SALT, 10));
   
-      // Create the user object
       const user = {
         Email,
         Pass: hashedPassword,
@@ -51,7 +48,6 @@ export const addUser = async (req, res) => {
         Role
       };
   
-      // Save the user in the database
       const result = await createUser(user);
       res.status(201).json({
         status: 'success',
@@ -73,7 +69,6 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const user = req.body;
 
-    // Check for missing parameters
     const { Nom, Prenom, Email, Role, Pass } = user;
     if (!Nom || !Prenom || !Email || !Role || !Pass) {
       return res.status(400).json({
@@ -104,10 +99,9 @@ export const updateUser = async (req, res) => {
 
 export const updateMyProfile = async (req, res) => {
   try {
-    const { id } = req.user;  // Get the user's ID from the authenticated request
+    const { id } = req.user;
     const user = req.body;
 
-    // Check for missing parameters
     const { Nom, Prenom, Email, Pass } = user;
     if (!Nom || !Prenom || !Email || !Pass) {
       return res.status(400).json({
