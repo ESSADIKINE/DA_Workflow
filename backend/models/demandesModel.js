@@ -3,7 +3,7 @@ import sql from 'mssql';
 
 export const createDemandeInDB = async (demande) => {
   try {
-    const { AR_Ref, AR_Design, Qty, description, Demande_statut } = demande;
+    const { AR_Ref, AR_Design, Qty, description, Demande_statut = 'Demander' } = demande;
     const pool = await getConnection();
     const result = await pool.request()
       .input('AR_Ref', sql.VarChar(50), AR_Ref)
