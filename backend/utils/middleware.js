@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
-import { findCollaboratorById } from '../models/userModel.js';
+import { findUserById } from '../models/userModel.js';
 
 // Middleware to check if the user is authenticated
 export const protect = async (req, res, next) => {
@@ -21,7 +21,7 @@ export const protect = async (req, res, next) => {
 
   try {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    const currentUser = await findCollaboratorById(decoded.id);
+    const currentUser = await findUserById(decoded.id);
 
     if (!currentUser) {
       return res.status(401).json({
@@ -42,7 +42,7 @@ export const protect = async (req, res, next) => {
 
 // Middleware to check if the user has admin privileges
 export const isAdmin = (req, res, next) => {
-  if (req.user.DA_Role === 'isAdmin') {
+  if (req.user.Role === 'admin') {
     return next();
   }
   res.status(403).json({
@@ -53,7 +53,7 @@ export const isAdmin = (req, res, next) => {
 
 // Middleware to check if the user has acheteur privileges
 export const isAchteur = (req, res, next) => {
-  if (req.user.DA_Role === 'isAchteur') {
+  if (req.user.Role === 'achteur') {
     return next();
   }
   res.status(403).json({
@@ -62,9 +62,9 @@ export const isAchteur = (req, res, next) => {
   });
 };
 
-// Middleware to check if the user has Dérecteur général privileges
+// Middleware to check if the user has dg (Directeur Général) privileges
 export const isDG = (req, res, next) => {
-  if (req.user.DA_Role === 'isDG') {
+  if (req.user.Role === 'dg') {
     return next();
   }
   res.status(403).json({
@@ -75,7 +75,7 @@ export const isDG = (req, res, next) => {
 
 // Middleware to check if the user has demandeur privileges
 export const isDemandeur = (req, res, next) => {
-  if (req.user.DA_Role === 'isDemandeur') {
+  if (req.user.Role === 'demandeur') {
     return next();
   }
   res.status(403).json({
@@ -84,9 +84,9 @@ export const isDemandeur = (req, res, next) => {
   });
 };
 
-// Middleware to check if the user has magasenier privileges
-export const isMagasenier = (req, res, next) => {
-  if (req.user.DA_Role === 'isMagasinier') {
+// Middleware to check if the user has magasinier privileges
+export const isMagasinier = (req, res, next) => {
+  if (req.user.Role === 'magasinier') {
     return next();
   }
   res.status(403).json({

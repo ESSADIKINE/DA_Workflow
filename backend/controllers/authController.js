@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
-import { findCollaboratorByEmail, findCollaboratorById, updateCollaboratorPasswordInDB } from '../models/userModel.js';
+import { findUserByEmail, updateUserPasswordInDB } from '../models/userModel.js';
 
 export const correctPassword = async (candidatePassword, userPassword) => {
   return await bcrypt.compare(candidatePassword, userPassword);
@@ -18,7 +18,7 @@ export const verifyToken = async (token) => {
 };
 
 export const createSendToken = (user, res) => {
-  const token = signToken(user.CO_No);
+  const token = signToken(user.User_id);
 
   const cookieOptions = {
     expires: new Date(
@@ -31,7 +31,7 @@ export const createSendToken = (user, res) => {
 
   res.cookie(process.env.COOKIE_JWT, token, cookieOptions);
 
-  user.CO_Pass = undefined;
+  user.Pass = undefined;
 
   res.status(200).json({
     status: 'success',
@@ -48,9 +48,9 @@ export const login = async (req, res) => {
 
     if (!email || !password) throw new Error('Please provide email and password');
 
-    const user = await findCollaboratorByEmail(email);
+    const user = await findUserByEmail(email);
 
-    if (!user || !(await correctPassword(password, user.CO_Pass)))
+    if (!user || !(await correctPassword(password, user.Pass)))
       throw new Error('Incorrect email or password');
 
     createSendToken(user, res);
@@ -72,17 +72,17 @@ export const logout = (req, res) => {
   res.status(200).json({ status: 'success' });
 };
 
-export const updateCollaboratorPasswordById = async (req, res) => {
+export const updatePassword = async (req, res) => {
   try {
     const { id } = req.params;
-    const { CO_Pass } = req.body;
+    const { Pass } = req.body;
 
-    if (!CO_Pass) throw new Error('Password not provided');
+    if (!Pass) throw new Error('Password not provided');
 
     // Hash the new password
-    const hashedPassword = await bcrypt.hash(CO_Pass, parseInt(process.env.HASH_SALT, 10));
+    const hashedPassword = await bcrypt.hash(Pass, parseInt(process.env.HASH_SALT, 10));
 
-    const result = await updateCollaboratorPasswordInDB(id, hashedPassword);
+    const result = await updateUserPasswordInDB(id, hashedPassword);
 
     console.log('Update Password Result:', result);
     res.status(200).json({
