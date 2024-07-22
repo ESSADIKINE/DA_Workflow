@@ -4,6 +4,6 @@ const router = express.Router();
 
 router.get('/fournisseurs', getAllFournisseurs);
 router.get('/fournisseurs/search', searchFournisseur);
-router.get('/fournisseurs/article', getFournisseurByARDesign);  // Modified to use query parameters
+router.get('/fournisseurs/article', getFournisseurByARDesign);
 
 export default router;

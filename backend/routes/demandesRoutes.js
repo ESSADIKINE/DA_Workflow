@@ -16,6 +16,6 @@ router.route('/demandes')
 router.route('/demandes/:id')
   .put(updateDemande)
   .delete(deleteDemande);
-router.get('/demandes/search', getDemandeBySearch); // Nouvelle route pour les articles en stock
+router.get('/demandes/search', getDemandeBySearch);
 
 export default router;
