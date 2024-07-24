@@ -47,9 +47,6 @@ export const getDemandesFromDB = async () => {
   }
 };
 
-import getConnection from '../config/dbConfig.js';
-import sql from 'mssql';
-
 export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
   try {
     const pool = await getConnection();
