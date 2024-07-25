@@ -143,14 +143,12 @@ export const updateBCStatutByAcheteurInDB = async (id, statut) => {
     try {
         const pool = await getConnection();
 
-        // Retrieve the current statut
         const result = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
             .query("SELECT DO_Statut FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece");
 
         const OldStatut = result.recordset[0]?.DO_Statut;
 
-        // Check if the current statut is 1
         if (OldStatut === 1) {
             const query = `
                 UPDATE F_DOCENTETE
@@ -162,7 +160,6 @@ export const updateBCStatutByAcheteurInDB = async (id, statut) => {
                 .query(query);
             return updateResult;
         } else {
-            // Return an appropriate response or throw an error if the current statut is not 1
             throw new Error('The current statut is not 1 and cannot be updated by the acheteur');
         }
     } catch (err) {
@@ -175,7 +172,6 @@ export const updateBCStatutByDGInDB = async (id, statut) => {
     try {
         const pool = await getConnection();
 
-        // Retrieve the current statut
         const result = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
             .query("SELECT DO_Statut FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece");
@@ -209,7 +205,6 @@ export const updateBCStatutByDGInDB = async (id, statut) => {
                 .query(query);
             return updateResult;
         } else {
-            // If the current statut is not 0, return an appropriate response or throw an error
             throw new Error('The current statut is not 0 and cannot be updated by DG');
         }
     } catch (err) {
