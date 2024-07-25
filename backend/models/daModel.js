@@ -23,51 +23,41 @@ export const addNewDAInDB = async (newDA, articles) => {
         await transaction.begin();
         console.log('Transaction started');
 
-        // Disable the trigger
         await transaction.request().query('DISABLE TRIGGER [TG_INS_F_DOCLIGNE] ON [F_DOCLIGNE]');
         console.log('Trigger disabled');
 
-        // Insert into F_DOCENTETE
         const headerQuery = `
-        INSERT INTO F_DOCENTETE (
-            DO_Domaine, DO_Type, DO_Piece, DO_Date, DO_Ref, DO_Tiers, CO_No, DO_Period, DO_Devise, DO_Cours,
-            DE_No, LI_No, CT_NumPayeur, DO_Expedit, DO_NbFacture, DO_BLFact, DO_TxEscompte, DO_Reliquat, 
-            DO_Imprim, CA_Num, DO_Coord01, DO_Coord02, DO_Coord03, DO_Coord04, DO_Souche, DO_DateLivr, 
-            DO_Condition, DO_Tarif, DO_Colisage, DO_TypeColis, DO_Transaction, DO_Langue, DO_Ecart, DO_Regime, 
-            N_CatCompta, DO_Ventile, AB_No, DO_DebutAbo, DO_FinAbo, DO_DebutPeriod, DO_FinPeriod, CG_Num, 
-            DO_Statut, DO_Heure, CA_No, CO_NoCaissier, DO_Transfere, DO_Cloture, DO_NoWeb, DO_Attente, 
-            DO_Provenance, CA_NumIFRS, MR_No, DO_TypeFrais, DO_ValFrais, DO_TypeLigneFrais, DO_TypeFranco, 
-            DO_ValFranco, DO_TypeLigneFranco, DO_Taxe1, DO_TypeTaux1, DO_TypeTaxe1, DO_Taxe2, DO_TypeTaux2, 
-            DO_TypeTaxe2, DO_Taxe3, DO_TypeTaux3, DO_TypeTaxe3, DO_MajCpta, DO_Motif, CT_NumCentrale, DO_Contact, 
-            DO_FactureElec, DO_TypeTransac, DO_DateLivrRealisee, DO_DateExpedition, DO_FactureFrs, DO_PieceOrig, 
-            DO_EStatut, DO_DemandeRegul, ET_No, DO_Valide, DO_Coffre, DO_CodeTaxe1, DO_CodeTaxe2, 
-            DO_CodeTaxe3, DO_TotalHT, DO_StatutBAP, DO_Escompte, DO_DocType, DO_TypeCalcul, 
-            DO_TotalHTNet, DO_TotalTTC, DO_NetAPayer, DO_MontantRegle, DO_RefPaiement, DO_AdressePaiement, 
-            DO_PaiementLigne, DO_MotifDevis, DUM, P_BRUT, EI, DATE_EI, POIDS_EI, DOM_EI, COMMENTAIRES, 
-            Date_Accusé_Commande, Date_Export, [Etat occasion], [Num. Imputation], demandeur, DO_Conversion, 
-            QUALITE_Quantité, QUALITE_Specification, QUALITE_Documentation
-        )
-        VALUES (
-1, 10, @DO_Piece, @DO_Date, @DO_Ref, @DO_Tiers, @CO_No, 0, @DO_Devise, 
-@DO_Cours, @DE_No, 0, @CT_NumPayeur, @DO_Expedit, 1, 0, 0.000000, 
-0, 0, @CA_Num, @DO_Coord01, '', '', '', 0, 
-@DO_DateLivr, 1, 1, 1, 11, 11, 0, 
-0.000000, 11, 2, 0, 0, '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', 
-'1900-01-01T00:00:00.000Z', '44111000', @DO_Statut, @DO_Heure, @CA_No, 0, 0, 0, 
-'', 0, 0, '', 0, 0, 0.000000, 
-0, 0, 0.000000, 0, 0.000000, 0, 
-0, 0.000000, 0, 0, 0.000000, 0, 0, 
-0, '', null, '', 0, 10, 
-'1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', '', '', 0, 
-0, 0, 0, '', null, null, null, 
-@DO_TotalHT, 0, 0.000000, @DO_DocType, 0,
-@DO_TotalHTNet, @DO_TotalTTC, @DO_NetAPayer, 0.000000, null, '', 
-'', '', @DUM, @P_BRUT, '', '1900-01-01T00:00:00.000Z', 0.000000, '', '', 
-'1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', '', '', @demandeur, '', 
-0, null, null
-
-        )
-    `;
+            INSERT INTO F_DOCENTETE (
+                DO_Domaine, DO_Type, DO_Piece, DO_Date, DO_Ref, DO_Tiers, CO_No, DO_Period, DO_Devise, DO_Cours,
+                DE_No, LI_No, CT_NumPayeur, DO_Expedit, DO_NbFacture, DO_BLFact, DO_TxEscompte, DO_Reliquat, 
+                DO_Imprim, CA_Num, DO_Coord01, DO_Coord02, DO_Coord03, DO_Coord04, DO_Souche, DO_DateLivr, 
+                DO_Condition, DO_Tarif, DO_Colisage, DO_TypeColis, DO_Transaction, DO_Langue, DO_Ecart, DO_Regime, 
+                N_CatCompta, DO_Ventile, AB_No, DO_DebutAbo, DO_FinAbo, DO_DebutPeriod, DO_FinPeriod, CG_Num, 
+                DO_Statut, DO_Heure, CA_No, CO_NoCaissier, DO_Transfere, DO_Cloture, DO_NoWeb, DO_Attente, 
+                DO_Provenance, CA_NumIFRS, MR_No, DO_TypeFrais, DO_ValFrais, DO_TypeLigneFrais, DO_TypeFranco, 
+                DO_ValFranco, DO_TypeLigneFranco, DO_Taxe1, DO_TypeTaux1, DO_TypeTaxe1, DO_Taxe2, DO_TypeTaux2, 
+                DO_TypeTaxe2, DO_Taxe3, DO_TypeTaux3, DO_TypeTaxe3, DO_MajCpta, DO_Motif, CT_NumCentrale, DO_Contact, 
+                DO_FactureElec, DO_TypeTransac, DO_DateLivrRealisee, DO_DateExpedition, DO_FactureFrs, DO_PieceOrig, 
+                DO_EStatut, DO_DemandeRegul, ET_No, DO_Valide, DO_Coffre, DO_CodeTaxe1, DO_CodeTaxe2, 
+                DO_CodeTaxe3, DO_TotalHT, DO_StatutBAP, DO_Escompte, DO_DocType, DO_TypeCalcul, 
+                DO_TotalHTNet, DO_TotalTTC, DO_NetAPayer, DO_MontantRegle, DO_RefPaiement, DO_AdressePaiement, 
+                DO_PaiementLigne, DO_MotifDevis, DUM, P_BRUT, EI, DATE_EI, POIDS_EI, DOM_EI, COMMENTAIRES, 
+                Date_Accusé_Commande, Date_Export, [Etat occasion], [Num. Imputation], demandeur, DO_Conversion, 
+                QUALITE_Quantité, QUALITE_Specification, QUALITE_Documentation
+            )
+            VALUES (
+                1, 10, @DO_Piece, @DO_Date, @DO_Ref, @DO_Tiers, @CO_No, 0, @DO_Devise, @DO_Cours, @DE_No, 0, 
+                @CT_NumPayeur, @DO_Expedit, 1, 0, 0.000000, 0, 0, @CA_Num, @DO_Coord01, '', '', '', 0, 
+                @DO_DateLivr, 1, 1, 1, 11, 11, 0, 0.000000, 11, 2, 0, 0, '1900-01-01T00:00:00.000Z', 
+                '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', '44111000', 
+                @DO_Statut, @DO_Heure, @CA_No, 0, 0, 0, '', 0, 0, '', 0, 0, 0.000000, 0, 0, 0.000000, 
+                0, 0.000000, 0, 0, 0.000000, 0, 0, 0.000000, 0, 0, 0, 0.000000, 0, '', null, '', 0, 10, 
+                '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z', '', '', 0, 0, 0, 0, '', null, null, null, 
+                @DO_TotalHT, 0, 0.000000, @DO_DocType, 0, @DO_TotalHTNet, @DO_TotalTTC, @DO_NetAPayer, 0.000000, null, 
+                '', '', '', @DUM, @P_BRUT, '', '1900-01-01T00:00:00.000Z', 0.000000, '', '', '1900-01-01T00:00:00.000Z', 
+                '1900-01-01T00:00:00.000Z', '', '', '', '', 0, null, null
+            )
+        `;
         console.log('Inserting into F_DOCENTETE');
         await transaction.request()
             .input('DO_Piece', sql.NVarChar(13), newDA.DO_Piece)
@@ -94,11 +84,9 @@ export const addNewDAInDB = async (newDA, articles) => {
             .input('DUM', sql.NVarChar(69), newDA.DUM)
             .input('P_BRUT', sql.Numeric(24, 6), newDA.P_BRUT)
             .input('COMMENTAIRES', sql.NVarChar(69), newDA.COMMENTAIRES)
-            .input('demandeur', sql.NVarChar(255), newDA.demandeur)
             .query(headerQuery);
         console.log('Inserted into F_DOCENTETE successfully');
 
-        // Insert into F_DOCLIGNE for each article
         if (articles && articles.length > 0) {
             console.log('Inserting into F_DOCLIGNE');
             const lineQuery = `
@@ -119,19 +107,19 @@ export const addNewDAInDB = async (newDA, articles) => {
                     DATE_DER_ETALONNAGE, MARQUE, NORME, MOTIF, Demendeur, Fournisseur, DATE_DISPO, commentaire, Occasion
                 ) VALUES (
                     1, 10, @CT_Num, @DO_Piece, '', '', @DO_Date, '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z',
-@DL_Ligne, @DO_Ref, 0, 0.000000, 0.000000, @AR_Ref, @DL_Design, @DL_Qte, 0.000000,
-0.000000, 0.000000, 0.000000, 0.000000, 0, 0.000000,
-0, 0.000000, 0, @DL_PrixUnitaire, 0.000000, 0.000000,
-0, 0, 0.000000, 0, 0, @CO_No, 0, 0, 0.000000,
-0.000000, 0, 0, '', @EU_Enumere, @EU_Qte, 0, @DE_No, 0, 1,
-0.000000, @DL_PUTTC, @DL_No, @DO_DateLivr, @CA_Num, 0.000000, 0, 0, 0.000000,
-0, null, 0, '', 0.000000, 0.000000, 0,
-0.000000, '', '1900-01-01T00:00:00.000Z', 0.000000, null, 0, null, 0.000000,
-'1900-01-01T00:00:00.000Z', '', @DL_CodeTaxe1, null, null, '', '',
-'1900-01-01T00:00:00.000Z', 0.000000, '', 0, @CA_No, @DO_DocType, null, 0,
-0.000000, '', '', '', '', '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z',
-@Certificat_Matiere, @Norme_Matiere, '', '', '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z',
-'1900-01-01T00:00:00.000Z', '', '', '', @Demendeur, @Fournisseur, '1900-01-01T00:00:00.000Z', @commentaire, ''
+                    @DL_Ligne, @DO_Ref, 0, 0.000000, 0.000000, @AR_Ref, @DL_Design, @DL_Qte, 0.000000,
+                    0.000000, 0.000000, 0.000000, 0.000000, 0, 0.000000,
+                    0, 0.000000, 0, @DL_PrixUnitaire, 0.000000, 0.000000,
+                    0, 0, 0.000000, 0, 0, @CO_No, 0, 0, 0.000000,
+                    0.000000, 0, 0, '', @EU_Enumere, @EU_Qte, 0, @DE_No, 0, 1,
+                    0.000000, @DL_PUTTC, @DL_No, @DO_DateLivr, @CA_Num, 0.000000, 0, 0, 0.000000,
+                    0, null, 0, '', 0.000000, 0.000000, 0,
+                    0.000000, '', '1900-01-01T00:00:00.000Z', 0.000000, null, 0, null, 0.000000,
+                    '1900-01-01T00:00:00.000Z', '', @DL_CodeTaxe1, null, null, '', '',
+                    '1900-01-01T00:00:00.000Z', 0.000000, '', 0, @CA_No, 10, null, 0,
+                    0.000000, '', '', '', '', '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z',
+                    '', '', '', '', '1900-01-01T00:00:00.000Z', '1900-01-01T00:00:00.000Z',
+                    '1900-01-01T00:00:00.000Z', '', '', '', @Demendeur, '', '1900-01-01T00:00:00.000Z', '', ''
                 )
             `;
             for (const article of articles) {
@@ -157,12 +145,7 @@ export const addNewDAInDB = async (newDA, articles) => {
                     .input('DL_QtePL', sql.Numeric(24, 6), article.DL_QtePL)
                     .input('DL_CodeTaxe1', sql.NVarChar(5), article.DL_CodeTaxe1)
                     .input('CA_No', sql.Int, article.CA_No)
-                    .input('DO_DocType', sql.SmallInt, newDA.DO_DocType)
-                    .input('Certificat_Matiere', sql.NVarChar(255), article.Certificat_Matiere)
-                    .input('Norme_Matiere', sql.NVarChar(255), article.Norme_Matiere)
                     .input('Demendeur', sql.NVarChar(50), article.Demendeur)
-                    .input('Fournisseur', sql.NVarChar(50), article.Fournisseur)
-                    .input('commentaire', sql.NVarChar(255), article.commentaire)
                     .query(lineQuery);
                 console.log('Inserted article successfully:', article);
             }
@@ -171,7 +154,6 @@ export const addNewDAInDB = async (newDA, articles) => {
         await transaction.commit();
         console.log('Transaction committed successfully');
 
-        // Re-enable the trigger
         await pool.request().query('ENABLE TRIGGER [TG_INS_F_DOCLIGNE] ON [F_DOCLIGNE]');
         console.log('Trigger re-enabled');
 
@@ -181,7 +163,6 @@ export const addNewDAInDB = async (newDA, articles) => {
         await transaction.rollback();
         console.log('Transaction rolled back');
 
-        // Re-enable the trigger in case of an error
         await pool.request().query('ENABLE TRIGGER [TG_INS_F_DOCLIGNE] ON [F_DOCLIGNE]');
         console.log('Trigger re-enabled after error');
 
@@ -192,7 +173,14 @@ export const addNewDAInDB = async (newDA, articles) => {
 export const getAllDAInDetailsFromDB = async () => {
     try {
         const pool = await getConnection();
-        const query = 'SELECT * FROM F_DOCLIGNE';
+        const query = `
+            SELECT 
+                DO_Domaine, DO_Type, CT_Num, DO_Piece, DO_Date, DL_Ligne, DO_Ref, AR_Ref, DL_Design, DL_Qte, DL_PrixUnitaire,  
+                CO_No, EU_Enumere, EU_Qte, DE_No, DL_PUTTC, DL_No, DO_DateLivr, CA_Num, DL_CodeTaxe1, CA_No, Demendeur
+            FROM F_DOCLIGNE 
+            WHERE DO_Piece LIKE 'DA%' 
+            ORDER BY DO_Date DESC
+        `;
         const result = await pool.request().query(query);
         return result.recordset;
     } catch (err) {
@@ -204,7 +192,15 @@ export const getAllDAInDetailsFromDB = async () => {
 export const getAllDAInBriefFromDB = async () => {
     try {
         const pool = await getConnection();
-        const query = 'SELECT * FROM F_DOCENTETE';
+        const query = `
+            SELECT 
+                DO_Domaine, DO_Type, DO_Piece, DO_Date, DO_Ref, DO_Tiers, CO_No, DO_Devise, DO_Cours, DE_No, CT_NumPayeur,  
+                DO_Expedit, CA_Num, DO_Coord01, DO_DateLivr, DO_Statut, DO_Heure, CA_No, DO_TotalHT, DO_DocType, DO_TotalHTNet, 
+                DO_TotalTTC, DO_NetAPayer, DUM, P_BRUT
+            FROM F_DOCENTETE 
+            WHERE DO_Piece LIKE 'DA%' 
+            ORDER BY DO_Date DESC
+        `;
         const result = await pool.request().query(query);
         return result.recordset;
     } catch (err) {
@@ -218,75 +214,194 @@ export const updateDAInDB = async (id, updatedDA) => {
         const pool = await getConnection();
         const query = `
             UPDATE F_DOCENTETE
-            SET DO_Tiers = @DO_Tiers, DO_Date = @DO_Date, DO_Statut = @DO_Statut, DO_Affaire = @DO_Affaire, DO_Expedition = @DO_Expedition, DO_LivrPrev = @DO_LivrPrev, DO_Acheteur = @DO_Acheteur, DO_DUM = @DO_DUM, DO_TypeDoc = @DO_TypeDoc, DO_Ref = @DO_Ref, DO_Entete1 = @DO_Entete1, DO_Devise = @DO_Devise
+            SET DO_Tiers = @DO_Tiers, DO_Date = @DO_Date, CA_Num = @CA_Num, 
+                DO_Expedit = @DO_Expedit, DO_DateLivr = @DO_DateLivr, DUM = @DUM, 
+                DO_Ref = @DO_Ref, DO_Coord01 = @DO_Coord01, DO_Devise = @DO_Devise
             WHERE DO_Piece = @DO_Piece
-        `;
+        `;    
         const result = await pool.request()
-            .input('DO_Piece', sql.NVarChar, id)
-            .input('DO_Tiers', sql.NVarChar, updatedDA.DO_Tiers)
-            .input('DO_Date', sql.Date, updatedDA.DO_Date)
-            .input('DO_Statut', sql.NVarChar, updatedDA.DO_Statut)
-            .input('DO_Affaire', sql.NVarChar, updatedDA.DO_Affaire)
-            .input('DO_Expedition', sql.NVarChar, updatedDA.DO_Expedition)
-            .input('DO_LivrPrev', sql.Date, updatedDA.DO_LivrPrev)
-            .input('DO_Acheteur', sql.NVarChar, updatedDA.DO_Acheteur)
-            .input('DO_DUM', sql.NVarChar, updatedDA.DO_DUM)
-            .input('DO_TypeDoc', sql.NVarChar, updatedDA.DO_TypeDoc)
-            .input('DO_Ref', sql.NVarChar, updatedDA.DO_Ref)
-            .input('DO_Entete1', sql.NVarChar, updatedDA.DO_Entete1)
-            .input('DO_Devise', sql.NVarChar, updatedDA.DO_Devise)
+            .input('DO_Piece', sql.NVarChar(13), id)
+            .input('DO_Tiers', sql.NVarChar(17), updatedDA.DO_Tiers)
+            .input('DO_Date', sql.DateTime, adjustDateForSmallDateTime(updatedDA.DO_Date))
+            .input('CA_Num', sql.NVarChar(17), updatedDA.CA_Num)
+            .input('DO_Expedit', sql.SmallInt, updatedDA.DO_Expedit)
+            .input('DO_DateLivr', sql.DateTime, adjustDateForSmallDateTime(updatedDA.DO_DateLivr))
+            .input('DUM', sql.NVarChar(69), updatedDA.DUM)
+            .input('DO_Ref', sql.NVarChar(17), updatedDA.DO_Ref)
+            .input('DO_Coord01', sql.NVarChar(35), updatedDA.DO_Coord01)
+            .input('DO_Devise', sql.SmallInt, updatedDA.DO_Devise)
             .query(query);
-        return result;
+        return result
     } catch (err) {
         console.log(`MODEL UPDATE DA: ${err.message}`);
         throw new Error('Database error during updating DA');
     }
 };
 
+export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
+    try {
+        const pool = await getConnection();
+
+        // Disable the trigger
+        await pool.request().query("DISABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
+
+        const query = `
+            UPDATE F_DOCLIGNE
+            SET 
+                CT_Num = @CT_Num,
+                DO_Date = @DO_Date,
+                DO_Ref = @DO_Ref,
+                AR_Ref = @AR_Ref,
+                DL_Design = @DL_Design,
+                DL_Qte = @DL_Qte,
+                DL_PrixUnitaire = @DL_PrixUnitaire,
+                CO_No = @CO_No,
+                EU_Enumere = @EU_Enumere,
+                EU_Qte = @EU_Qte,
+                DE_No = @DE_No,
+                DL_PUTTC = @DL_PUTTC,
+                DO_DateLivr = @DO_DateLivr,
+                CA_Num = @CA_Num,
+                DL_QtePL = @DL_QtePL,
+                DL_CodeTaxe1 = @DL_CodeTaxe1,
+                CA_No = @CA_No,
+                Demendeur = @Demendeur
+            WHERE 
+                DO_Piece = @DO_Piece AND
+                DL_Ligne = @DL_Ligne
+        `;
+
+        const result = await pool.request()
+            .input('CT_Num', sql.NVarChar(17), updatedArticle.CT_Num)
+            .input('DO_Piece', sql.NVarChar(13), doPiece)
+            .input('DO_Date', sql.DateTime, adjustDateForSmallDateTime(updatedArticle.DO_Date))
+            .input('DO_Ref', sql.NVarChar(17), updatedArticle.DO_Ref)
+            .input('AR_Ref', sql.NVarChar(19), updatedArticle.AR_Ref)
+            .input('DL_Design', sql.NVarChar(69), updatedArticle.DL_Design)
+            .input('DL_Qte', sql.Numeric(24, 6), updatedArticle.DL_Qte)
+            .input('DL_PrixUnitaire', sql.Numeric(24, 6), updatedArticle.DL_PrixUnitaire)
+            .input('CO_No', sql.Int, updatedArticle.CO_No)
+            .input('EU_Enumere', sql.NVarChar(35), updatedArticle.EU_Enumere)
+            .input('EU_Qte', sql.Numeric(24, 6), updatedArticle.EU_Qte)
+            .input('DE_No', sql.Int, updatedArticle.DE_No)
+            .input('DL_PUTTC', sql.Numeric(24, 6), updatedArticle.DL_PUTTC)
+            .input('DO_DateLivr', sql.DateTime, adjustDateForSmallDateTime(updatedArticle.DO_DateLivr))
+            .input('CA_Num', sql.NVarChar(17), updatedArticle.CA_Num)
+            .input('DL_QtePL', sql.Numeric(24, 6), updatedArticle.DL_QtePL)
+            .input('DL_CodeTaxe1', sql.NVarChar(5), updatedArticle.DL_CodeTaxe1)
+            .input('CA_No', sql.Int, updatedArticle.CA_No)
+            .input('Demendeur', sql.NVarChar(50), updatedArticle.Demendeur)
+            .input('DL_Ligne', sql.Int, dlLigne)
+            .query(query);
+
+        // Enable the trigger
+        await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
+
+        return result
+    } catch (err) {
+        console.log(`MODEL UPDATE DOCLIGNE: ${err.message}`);
+        
+        // Re-enable the trigger if an error occurs
+        await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE").catch(e => console.log(`Error enabling trigger: ${e.message}`));
+
+        throw new Error('Database error during updating DOCLIGNE');
+    }
+};
+
 export const updateDAStatutByAcheteurInDB = async (id, statut) => {
     try {
         const pool = await getConnection();
-        const query = `
-            UPDATE F_DOCENTETE
-            SET DO_Statut = @DO_Statut
-            WHERE DO_Piece = @DO_Piece
-        `;
+
+        // Retrieve the current statut
         const result = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
-            .input('DO_Statut', sql.NVarChar, statut)
-            .query(query);
-        return result;
+            .query("SELECT DO_Statut FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece");
+
+        const OldStatut = result.recordset[0]?.DO_Statut;
+
+        // Check if the current statut is 0
+        if (OldStatut === 0) {
+            const query = `
+                UPDATE F_DOCENTETE
+                SET DO_Statut = 1
+                WHERE DO_Piece = @DO_Piece
+            `;
+            const updateResult = await pool.request()
+                .input('DO_Piece', sql.NVarChar, id)
+                .query(query);
+            return updateResult;
+        } else {
+            // Return an appropriate response or throw an error if the current statut is not 0
+            throw new Error('The current statut is not 0 and cannot be updated by the acheteur');
+        }
     } catch (err) {
         console.log(`MODEL UPDATE DA STATUT BY ACHETEUR: ${err.message}`);
         throw new Error('Database error during updating DA statut by acheteur');
     }
 };
 
+
 export const updateDAStatutByDGInDB = async (id, statut) => {
     try {
         const pool = await getConnection();
-        const query = `
-            UPDATE F_DOCENTETE
-            SET DO_Statut = @DO_Statut
-            WHERE DO_Piece = @DO_Piece
-        `;
+
+        // Retrieve the current statut
         const result = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
-            .input('DO_Statut', sql.NVarChar, statut)
-            .query(query);
-        return result;
+            .query("SELECT DO_Statut FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece");
+
+        const OldStatut = result.recordset[0]?.DO_Statut;
+
+        if (OldStatut === 1) {
+            let Nstatut;
+            switch (statut) {
+                case 'Saisie':
+                    Nstatut = 0;
+                    break;
+                case 'Accepté':
+                    Nstatut = 2;
+                    break;
+                case 'Refusé':
+                    Nstatut = 3;
+                    break;
+                default:
+                    throw new Error('Invalid statut');
+            }
+
+            const query = `
+                UPDATE F_DOCENTETE
+                SET DO_Statut = @DO_Statut
+                WHERE DO_Piece = @DO_Piece
+            `;
+            const updateResult = await pool.request()
+                .input('DO_Piece', sql.NVarChar, id)
+                .input('DO_Statut', sql.Int, Nstatut)
+                .query(query);
+            return updateResult;
+        } else {
+            // If the current statut is not 1, return an appropriate response or throw an error
+            throw new Error('The current statut is not 1 and cannot be updated by DG');
+        }
     } catch (err) {
         console.log(`MODEL UPDATE DA STATUT BY DG: ${err.message}`);
         throw new Error('Database error during updating DA statut by DG');
     }
 };
 
+
+
 export const searchDAInDB = async (key) => {
     try {
         const pool = await getConnection();
         const query = `
-            SELECT * FROM F_DOCENTETE
-            WHERE DO_Piece LIKE @key OR DO_Tiers LIKE @key
+            SELECT 
+                DO_Domaine, DO_Type, DO_Piece, DO_Date, DO_Ref, DO_Tiers, CO_No, DO_Devise, DO_Cours, DE_No, CT_NumPayeur,  
+                DO_Expedit, CA_Num, DO_Coord01, DO_DateLivr, DO_Statut, DO_Heure, CA_No, DO_TotalHT, DO_DocType, DO_TotalHTNet, 
+                DO_TotalTTC, DO_NetAPayer, DUM, P_BRUT 
+            FROM F_DOCENTETE
+            WHERE DO_Piece LIKE @key
+            ORDER BY DO_Date DESC
+
         `;
         const result = await pool.request()
             .input('key', sql.NVarChar, `%${key}%`)
@@ -295,6 +410,27 @@ export const searchDAInDB = async (key) => {
     } catch (err) {
         console.log(`MODEL SEARCH DA: ${err.message}`);
         throw new Error('Database error during searching DA');
+    }
+};
+
+export const searchDLInDB = async (key) => {
+    try {
+        const pool = await getConnection();
+        const query = `
+            SELECT
+                DO_Domaine, DO_Type, CT_Num, DO_Piece, DO_Date, DL_Ligne, DO_Ref, AR_Ref, DL_Design, DL_Qte, DL_PrixUnitaire,  
+                CO_No, EU_Enumere, EU_Qte, DE_No, DL_PUTTC, DL_No, DO_DateLivr, CA_Num, DL_CodeTaxe1, CA_No, Demendeur 
+            FROM F_DOCLIGNE
+            WHERE DO_Piece LIKE @key OR AR_Ref LIKE @key
+            ORDER BY DO_Date DESC
+        `;
+        const result = await pool.request()
+            .input('key', sql.NVarChar, `%${key}%`)
+            .query(query);
+        return result.recordset;
+    } catch (err) {
+        console.log(`MODEL SEARCH DL: ${err.message}`);
+        throw new Error('Database error during searching DL');
     }
 };
 
@@ -309,5 +445,27 @@ export const getDAByStatutFromDB = async (statut) => {
     } catch (err) {
         console.log(`MODEL GET DA BY STATUT: ${err.message}`);
         throw new Error('Database error during fetching DA by statut');
+    }
+};
+
+
+export const deleteDocLigneInDB = async (doPiece, dlLigne) => {
+    try {
+        const pool = await getConnection();
+        
+        const query = `
+            DELETE FROM F_DOCLIGNE
+            WHERE DO_Piece = @DO_Piece AND DL_Ligne = @DL_Ligne
+        `;
+        
+        const result = await pool.request()
+            .input('DO_Piece', sql.NVarChar, doPiece)
+            .input('DL_Ligne', sql.Int, dlLigne)
+            .query(query);
+        
+        return result;
+    } catch (err) {
+        console.log(`MODEL DELETE DOCLIGNE: ${err.message}`);
+        throw new Error('Database error during deleting docligne');
     }
 };

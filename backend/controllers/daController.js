@@ -1,6 +1,15 @@
 import {
-
     addNewDAInDB,
+    getAllDAInDetailsFromDB,
+    getAllDAInBriefFromDB,
+    updateDAInDB,
+    updateDocLigneInDB,
+    updateDAStatutByAcheteurInDB,
+    updateDAStatutByDGInDB,
+    searchDAInDB,
+    searchDLInDB,
+    getDAByStatutFromDB,
+    deleteDocLigneInDB
 } from '../models/daModel.js';
 
 export const getAllDAInDetails = async (req, res) => {
@@ -43,7 +52,6 @@ export const addNewDA = async (req, res) => {
     try {
         const newDA = req.body.da;
         const articles = req.body.articles;
-        
 
         const result = await addNewDAInDB(newDA, articles);
         res.status(201).json({
@@ -75,8 +83,31 @@ export const editDA = async (req, res) => {
                 result,
             },
         });
+        console.log(da);
     } catch (err) {
         console.log(`UPDATE DA: ${err.message}`);
+        res.status(500).json({
+            status: 'fail',
+            message: err.message,
+        });
+    }
+};
+
+export const editDL = async (req, res) => {
+    const { doPiece, dlLigne } = req.params;
+    const updatedArticle = req.body;
+
+    try {
+        const result = await updateDocLigneInDB(doPiece, dlLigne, updatedArticle);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                message: 'Doc Ligne updated successfully',
+                result,
+            },
+        });
+    } catch (err) {
+        console.log(`UPDATE Doc Ligne: ${err.message}`);
         res.status(500).json({
             status: 'fail',
             message: err.message,
@@ -89,14 +120,23 @@ export const editDAStatutByAcheteur = async (req, res) => {
         const { id } = req.params;
         const { statut } = req.body;
 
-        const result = await updateDAStatutByAcheteurInDB(id, statut);
-        res.status(200).json({
-            status: 'success',
-            data: {
-                message: 'DA statut by acheteur updated successfully',
-                result,
-            },
-        });
+        // Check if the statut is "confermé"
+        if (statut === 'Confirmé') {
+            const result = await updateDAStatutByAcheteurInDB(id, statut);
+            res.status(200).json({
+                status: 'success',
+                data: {
+                    message: 'DA statut by acheteur updated successfully',
+                    result,
+                },
+            });
+        } else {
+            // If the statut is not "confermé", return a 400 status code
+            res.status(400).json({
+                status: 'fail',
+                message: 'Invalid statut. The statut must be "Confirmé".',
+            });
+        }
     } catch (err) {
         console.log(`UPDATE DA STATUT BY ACHETEUR: ${err.message}`);
         res.status(500).json({
@@ -106,19 +146,28 @@ export const editDAStatutByAcheteur = async (req, res) => {
     }
 };
 
+
+
 export const editDAStatutByDG = async (req, res) => {
     try {
         const { id } = req.params;
         const { statut } = req.body;
 
-        const result = await updateDAStatutByDGInDB(id, statut);
-        res.status(200).json({
-            status: 'success',
-            data: {
-                message: 'DA statut by DG updated successfully',
-                result,
-            },
-        });
+        if (statut === 'Saisie' || statut === 'Accepté' || statut === 'Refusé') {
+            const result = await updateDAStatutByDGInDB(id, statut);
+            res.status(200).json({
+                status: 'success',
+                data: {
+                    message: 'DA statut by DG updated successfully',
+                    result,
+                },
+            });
+        } else {
+            res.status(400).json({
+                status: 'fail',
+                message: 'Invalid statut. The statut must be "Saisie", "Accepté" or "Refusé".',
+            });
+        }
     } catch (err) {
         console.log(`UPDATE DA STATUT BY DG: ${err.message}`);
         res.status(500).json({
@@ -127,6 +176,8 @@ export const editDAStatutByDG = async (req, res) => {
         });
     }
 };
+
+
 
 export const searchDA = async (req, res) => {
     try {
@@ -147,6 +198,25 @@ export const searchDA = async (req, res) => {
     }
 };
 
+export const searchDL = async (req, res) => {
+    try {
+        const { key } = req.query;
+        const doclignes = await searchDLInDB(key);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                doclignes,
+            },
+        });
+    } catch (err) {
+        console.log(`SEARCH DL: ${err.message}`);
+        res.status(500).json({
+            status: 'fail',
+            message: err.message,
+        });
+    }
+};
+
 export const getDAByStatut = async (req, res) => {
     try {
         const { statut } = req.query;
@@ -159,6 +229,27 @@ export const getDAByStatut = async (req, res) => {
         });
     } catch (err) {
         console.log(`GET DA BY STATUT: ${err.message}`);
+        res.status(500).json({
+            status: 'fail',
+            message: err.message,
+        });
+    }
+};
+
+export const deleteDocLigne = async (req, res) => {
+    const { doPiece, dlLigne } = req.params;
+
+    try {
+        const result = await deleteDocLigneInDB(doPiece, dlLigne);
+        res.status(200).json({
+            status: 'success',
+            data: {
+                message: 'Doc Ligne deleted successfully',
+                result,
+            },
+        });
+    } catch (err) {
+        console.log(`DELETE DOCLIGNE: ${err.message}`);
         res.status(500).json({
             status: 'fail',
             message: err.message,
