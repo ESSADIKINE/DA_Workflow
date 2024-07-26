@@ -1,4 +1,5 @@
 import getConnection from '../config/dbsql.js';
+import { sendEmail, emailTemplates } from '../utils/Emails/Email.js';
 import sql from 'mssql';
 
 export const getAllBCInDetailsFromDB = async () => {
@@ -139,79 +140,126 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
     }
 };
 
-export const updateBCStatutByAcheteurInDB = async (id, statut) => {
+export const updateBCStatutByAcheteurInDB = async (id) => {
     try {
         const pool = await getConnection();
 
-        const result = await pool.request()
+        // Retrieve current DO_Statut
+        const statutResult = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
             .query("SELECT DO_Statut FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece");
 
-        const OldStatut = result.recordset[0]?.DO_Statut;
+        if (!statutResult.recordset.length) {
+            throw new Error(`No record found for DO_Piece: ${id}`);
+        }
 
-        if (OldStatut === 1) {
+        const { DO_Statut } = statutResult.recordset[0];
+        console.log(`Current DO_Statut: ${DO_Statut}`);
+
+        // Retrieve all Demendeur values from F_DOCLIGNE
+        const demandeurResult = await pool.request()
+            .input('DO_Piece', sql.NVarChar, id)
+            .query("SELECT DISTINCT Demendeur FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece");
+
+        const demandeurs = demandeurResult.recordset.map(record => record.Demendeur);
+        console.log(`Demandeurs found: ${demandeurs.join(', ')}`);
+
+        if (DO_Statut === 1) {
+            // Update DO_Statut in F_DOCENTETE
             const query = `
                 UPDATE F_DOCENTETE
                 SET DO_Statut = 2
                 WHERE DO_Piece = @DO_Piece
             `;
-            const updateResult = await pool.request()
+            await pool.request()
                 .input('DO_Piece', sql.NVarChar, id)
                 .query(query);
-            return updateResult;
+
+            // Send emails to all unique demandeurs
+            for (const demandeur of demandeurs) {
+                const { subject, html } = emailTemplates.envoye(demandeur);
+                await sendEmail(demandeur, subject, html);
+                console.log(`Email sent to demandeur: ${demandeur}`);
+            }
         } else {
             throw new Error('The current statut is not 1 and cannot be updated by the acheteur');
         }
     } catch (err) {
-        console.log(`MODEL UPDATE BC STATUT BY ACHETEUR: ${err.message}`);
+        console.error(`Error updating BC statut by acheteur: ${err.message}`);
         throw new Error('Database error during updating BC statut by acheteur');
     }
 };
+
 
 export const updateBCStatutByDGInDB = async (id, statut) => {
     try {
         const pool = await getConnection();
 
-        const result = await pool.request()
+        // Retrieve current DO_Statut
+        const statutResult = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
             .query("SELECT DO_Statut FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece");
 
-        const OldStatut = result.recordset[0]?.DO_Statut;
+        if (!statutResult.recordset.length) {
+            throw new Error(`No record found for DO_Piece: ${id}`);
+        }
 
-        if (OldStatut === 0) {
-            let Nstatut;
+        const { DO_Statut } = statutResult.recordset[0];
+        console.log(`Current DO_Statut: ${DO_Statut}`);
+
+        // Retrieve all Demendeur values from F_DOCLIGNE
+        const demandeurResult = await pool.request()
+            .input('DO_Piece', sql.NVarChar, id)
+            .query("SELECT DISTINCT Demendeur FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece");
+
+        const demandeurs = demandeurResult.recordset.map(record => record.Demendeur);
+        console.log(`Demandeurs found: ${demandeurs.join(', ')}`);
+
+        if (DO_Statut === 0) {
+            let Nstatut, emailTemplate;
             switch (statut) {
                 case 'Saisie':
                     Nstatut = 0;
+                    emailTemplate = emailTemplates.saisie;
                     break;
                 case 'Confirmé':
                     Nstatut = 1;
+                    emailTemplate = emailTemplates.confirme;
                     break;
                 case 'Refusé':
                     Nstatut = 3;
+                    emailTemplate = emailTemplates.refuse;
                     break;
                 default:
                     throw new Error('Invalid statut');
             }
 
+            // Update DO_Statut in F_DOCENTETE
             const query = `
                 UPDATE F_DOCENTETE
                 SET DO_Statut = @DO_Statut
                 WHERE DO_Piece = @DO_Piece
             `;
-            const updateResult = await pool.request()
+            await pool.request()
                 .input('DO_Piece', sql.NVarChar, id)
                 .input('DO_Statut', sql.Int, Nstatut)
                 .query(query);
-            return updateResult;
+
+            // Send emails to all unique demandeurs
+            for (const demandeur of demandeurs) {
+                const { subject, html } = emailTemplate(demandeur);
+                await sendEmail(demandeur, subject, html);
+                console.log(`Email sent to demandeur: ${demandeur}`);
+            }
         } else {
             throw new Error('The current statut is not 0 and cannot be updated by DG');
         }
     } catch (err) {
-        console.log(`MODEL UPDATE BC STATUT BY DG: ${err.message}`);
+        console.error(`Error updating BC statut by DG: ${err.message}`);
         throw new Error('Database error during updating BC statut by DG');
     }
 };
+
 
 export const searchBCInDB = async (key) => {
     try {
@@ -322,27 +370,33 @@ export const transformDaToBcInDB = async (doPiece) => {
 
         await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
 
+        // Retrieve all Demendeur values from F_DOCLIGNE
+        const demandeurResult = await pool.request()
+            .input('DO_Piece', sql.NVarChar, doPiece.replace('DA', 'FBC'))
+            .query("SELECT DISTINCT Demendeur FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece");
+
+        const demandeurs = demandeurResult.recordset.map(record => record.Demendeur);
+        console.log(`Demandeurs found: ${demandeurs.join(', ')}`);
+
+        // Send emails to all unique demandeurs
+        for (const demandeur of demandeurs) {
+            const { subject, html } = emailTemplates.preparation(demandeur);
+            await sendEmail(demandeur, subject, html);
+            console.log(`Email sent to demandeur: ${demandeur}`);
+        }
+
         return { message: 'DA successfully transformed to BC' };
     } catch (err) {
-        console.log(`MODEL TRANSFORM DA TO BC: ${err.message}`);
+        console.error(`Error transforming DA to BC: ${err.message}`);
         
         if (transaction) {
-            console.log('Rolling back transaction');
-            await transaction.rollback().catch(rollbackErr => {
-                console.log(`Error rolling back transaction: ${rollbackErr.message}`);
-            });
+            await transaction.rollback();
         }
-
-        if (pool) {
-            console.log('Enabling trigger after error');
-            await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE").catch(triggerErr => {
-                console.log(`Error enabling trigger: ${triggerErr.message}`);
-            });
-        }
-
+        await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
         throw new Error('Database error during transforming DA to BC');
     }
 };
+
 
 
 
