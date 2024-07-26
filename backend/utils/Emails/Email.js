@@ -28,9 +28,9 @@ export const sendEmail = async (to, subject, html) => {
 };
 
 export const emailTemplates = {
-    traitement: (demandeur) => ({
+    traitement: (fullName) => ({
         subject: "Votre demande est encore en traitement",
-        html: `<p>Bonjour ${demandeur},</p><p>Votre demande est encore en traitement.</p><p>Cet email est généré automatiquement. Veuillez ne pas y répondre.</p>`
+        html: `<p>Bonjour ${fullName},</p><p>Votre demande est encore en traitement.</p><p>Cet email est généré automatiquement. Veuillez ne pas y répondre.</p>`
     }),
     refuse: (demandeur) => ({
         subject: "Votre demande est Refusée",

@@ -347,19 +347,31 @@ export const updateDAStatutByAcheteurInDB = async (id) => {
                 .query(updateQuery);
             console.log(`DO_Statut updated to 1 for DO_Piece: ${id}`);
 
-            // Retrieve all Demendeur values from F_DOCLIGNE
+            // Retrieve all Demendeur values and their names from F_DOCLIGNE and User tables
             const demandeurResult = await pool.request()
                 .input('DO_Piece', sql.NVarChar, id)
-                .query("SELECT DISTINCT Demendeur FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece");
+                .query(`
+                    SELECT DISTINCT U.Nom, U.Prenom, U.Email 
+                    FROM F_DOCLIGNE D
+                    JOIN DA_USERS U ON D.Demendeur = U.Email
+                    WHERE D.DO_Piece = @DO_Piece
+                `);
 
-            const demandeurs = demandeurResult.recordset.map(record => record.Demendeur);
-            console.log(`Demandeurs found: ${demandeurs.join(', ')}`);
+            if (!demandeurResult.recordset.length) {
+                throw new Error(`No demandeurs found for DO_Piece: ${id}`);
+            }
+
+            const demandeurs = demandeurResult.recordset.map(record => ({
+                email: record.Email,
+                fullName: `${record.Nom} ${record.Prenom}`
+            }));
+            console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
             // Send emails to all unique demandeurs
-            for (const demandeur of demandeurs) {
-                const { subject, html } = emailTemplates.traitement(demandeur);
-                await sendEmail(demandeur, subject, html);
-                console.log(`Email sent to demandeur: ${demandeur}`);
+            for (const { email, fullName } of demandeurs) {
+                const { subject, html } = emailTemplates.traitement(fullName);
+                await sendEmail(email, subject, html);
+                console.log(`Email sent to demandeur: ${fullName}`);
             }
         } else {
             throw new Error('The current statut is not 0 and cannot be updated by the acheteur');
@@ -387,13 +399,37 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
         const { DO_Statut } = statutResult.recordset[0];
         console.log(`Current DO_Statut: ${DO_Statut}`);
 
-        // Retrieve all Demendeur values from F_DOCLIGNE
+        // Retrieve all Demendeur values and their names from F_DOCLIGNE and User tables
         const demandeurResult = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
-            .query("SELECT DISTINCT Demendeur FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece");
+            .query(`
+                SELECT DISTINCT U.Nom, U.Prenom, U.Email 
+                FROM F_DOCLIGNE D
+                JOIN DA_USERS U ON D.Demendeur = U.Email
+                WHERE D.DO_Piece = @DO_Piece
+            `);
 
-        const demandeurs = demandeurResult.recordset.map(record => record.Demendeur);
-        console.log(`Demandeurs found: ${demandeurs.join(', ')}`);
+        // Retrieve the email of the acheteur
+        const acheteurResult = await pool.request()
+            .input('DO_Piece', sql.NVarChar, id)
+            .query(`SELECT U.Nom, U.Prenom, U.Email FROM F_COLLABORATEUR C 
+                JOIN F_DOCENTETE E ON E.CO_No = C.CO_No 
+                JOIN DA_USERS U ON C.CO_EMail = U.Email 
+                WHERE E.DO_Piece = @DO_Piece`);
+
+        if (!acheteurResult.recordset.length) {
+            throw new Error('No email found for acheteur');
+        }
+
+        const acheteur = acheteurResult.recordset[0];
+        const acheteurEmail = acheteur.Email;
+        const acheteurFullName = `${acheteur.Nom} ${acheteur.Prenom}`;
+
+        const demandeurs = demandeurResult.recordset.map(record => ({
+            email: record.Email,
+            fullName: `${record.Nom} ${record.Prenom}`
+        }));
+        console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
         if (DO_Statut === 1) {
             let Nstatut, emailTemplate;
@@ -426,11 +462,16 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
                 .query(query);
 
             // Send emails to all unique demandeurs
-            for (const demandeur of demandeurs) {
-                const { subject, html } = emailTemplate(demandeur);
-                await sendEmail(demandeur, subject, html);
-                console.log(`Email sent to demandeur: ${demandeur}`);
+            for (const { email, fullName } of demandeurs) {
+                const { subject, html } = emailTemplate(fullName);
+                await sendEmail(email, subject, html);
+                console.log(`Email sent to demandeur: ${fullName}`);
             }
+
+            // Send email to the acheteur
+            const { subject: acheteurSubject, html: acheteurHtml } = emailTemplate(acheteurFullName);
+            await sendEmail(acheteurEmail, acheteurSubject, acheteurHtml);
+            console.log(`Email sent to acheteur: ${acheteurFullName}`);
         } else {
             throw new Error('The current statut is not 1 and cannot be updated by DG');
         }
@@ -439,8 +480,6 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
         throw new Error('Database error during updating DA statut by DG');
     }
 };
-
-
 
 
 export const searchDAInDB = async (key) => {
