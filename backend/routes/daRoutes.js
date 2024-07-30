@@ -28,5 +28,4 @@ router.get('/da/statut', getDAByStatut);
 
 router.delete('/dl/:doPiece/:dlLigne', deleteDocLigne); // New delete route
 
-
 export default router;

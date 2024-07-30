@@ -1,8 +1,6 @@
 import {
     getAllBCInDetailsFromDB,
     getAllBCInBriefFromDB,
-    updateBCInDB,
-    updateDocLigneInDB,
     updateBCStatutByAcheteurInDB,
     updateBCStatutByDGInDB,
     searchBCInDB,
@@ -12,6 +10,11 @@ import {
     transformDaToBcInDB,
     updateBCTypeAndStatutInDB
 } from '../models/bcModel.js';
+import {
+    updateDAInDB,
+    updateDocLigneInDB,
+} from '../models/daModel.js';
+
 
 export const getAllBCInDetails = async (req, res) => {
     try {
@@ -49,34 +52,13 @@ export const getAllBCInBrief = async (req, res) => {
     }
 };
 
-export const addNewBC = async (req, res) => {
-    try {
-        const newBC = req.body.bc;
-        const articles = req.body.articles;
-
-        const result = await addNewBCInDB(newBC, articles);
-        res.status(201).json({
-            status: 'success',
-            data: {
-                message: 'BC and articles added successfully',
-                result,
-            },
-        });
-    } catch (err) {
-        console.log(`ADD NEW BC: ${err.message}`);
-        res.status(500).json({
-            status: 'fail',
-            message: err.message,
-        });
-    }
-};
 
 export const editBC = async (req, res) => {
     try {
         const { id } = req.params;
         const bc = req.body;
 
-        const result = await updateBCInDB(id, bc);
+        const result = await updateDAInDB(id, bc);
         res.status(200).json({
             status: 'success',
             data: {

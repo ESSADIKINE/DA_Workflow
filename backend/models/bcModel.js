@@ -30,7 +30,7 @@ export const getAllBCInBriefFromDB = async () => {
                 DO_Expedit, CA_Num, DO_Coord01, DO_DateLivr, DO_Statut, DO_Heure, CA_No, DO_TotalHT, DO_DocType, DO_TotalHTNet, 
                 DO_TotalTTC, DO_NetAPayer, DUM, P_BRUT
             FROM F_DOCENTETE 
-            WHERE DO_Piece LIKE 'FBC%' 
+            WHERE DO_Piece LIKE 'FBC%'
             ORDER BY DO_Date DESC
         `;
         const result = await pool.request().query(query);
@@ -38,105 +38,6 @@ export const getAllBCInBriefFromDB = async () => {
     } catch (err) {
         console.log(`MODEL GET ALL BC IN BRIEF: ${err.message}`);
         throw new Error('Database error during fetching all BC in brief');
-    }
-};
-
-export const updateBCInDB = async (id, updatedBC) => {
-    try {
-        const pool = await getConnection();
-        const query = `
-            UPDATE F_DOCENTETE
-            SET DO_Tiers = @DO_Tiers, DO_Date = @DO_Date, CA_Num = @CA_Num, 
-                DO_Expedit = @DO_Expedit, DO_DateLivr = @DO_DateLivr, DUM = @DUM, 
-                DO_Ref = @DO_Ref, DO_Coord01 = @DO_Coord01, DO_Devise = @DO_Devise
-            WHERE DO_Piece = @DO_Piece
-        `;    
-        const result = await pool.request()
-            .input('DO_Piece', sql.NVarChar(13), id)
-            .input('DO_Tiers', sql.NVarChar(17), updatedBC.DO_Tiers)
-            .input('DO_Date', sql.DateTime, updatedBC.DO_Date)
-            .input('CA_Num', sql.NVarChar(17), updatedBC.CA_Num)
-            .input('DO_Expedit', sql.SmallInt, updatedBC.DO_Expedit)
-            .input('DO_DateLivr', sql.DateTime, updatedBC.DO_DateLivr)
-            .input('DUM', sql.NVarChar(69), updatedBC.DUM)
-            .input('DO_Ref', sql.NVarChar(17), updatedBC.DO_Ref)
-            .input('DO_Coord01', sql.NVarChar(35), updatedBC.DO_Coord01)
-            .input('DO_Devise', sql.SmallInt, updatedBC.DO_Devise)
-            .query(query);
-        return result
-    } catch (err) {
-        console.log(`MODEL UPDATE BC: ${err.message}`);
-        throw new Error('Database error during updating BC');
-    }
-};
-
-export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
-    try {
-        const pool = await getConnection();
-
-        // Disable the trigger
-        await pool.request().query("DISABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
-
-        const query = `
-            UPDATE F_DOCLIGNE
-            SET 
-                CT_Num = @CT_Num,
-                DO_Date = @DO_Date,
-                DO_Ref = @DO_Ref,
-                AR_Ref = @AR_Ref,
-                DL_Design = @DL_Design,
-                DL_Qte = @DL_Qte,
-                DL_PrixUnitaire = @DL_PrixUnitaire,
-                CO_No = @CO_No,
-                EU_Enumere = @EU_Enumere,
-                EU_Qte = @EU_Qte,
-                DE_No = @DE_No,
-                DL_PUTTC = @DL_PUTTC,
-                DO_DateLivr = @DO_DateLivr,
-                CA_Num = @CA_Num,
-                DL_QtePL = @DL_QtePL,
-                DL_CodeTaxe1 = @DL_CodeTaxe1,
-                CA_No = @CA_No,
-                Demendeur = @Demendeur
-            WHERE 
-                DO_Piece = @DO_Piece AND
-                DL_Ligne = @DL_Ligne
-        `;
-
-        const result = await pool.request()
-            .input('CT_Num', sql.NVarChar(17), updatedArticle.CT_Num)
-            .input('DO_Piece', sql.NVarChar(13), doPiece)
-            .input('DO_Date', sql.DateTime, updatedArticle.DO_Date)
-            .input('DO_Ref', sql.NVarChar(17), updatedArticle.DO_Ref)
-            .input('AR_Ref', sql.NVarChar(19), updatedArticle.AR_Ref)
-            .input('DL_Design', sql.NVarChar(69), updatedArticle.DL_Design)
-            .input('DL_Qte', sql.Numeric(24, 6), updatedArticle.DL_Qte)
-            .input('DL_PrixUnitaire', sql.Numeric(24, 6), updatedArticle.DL_PrixUnitaire)
-            .input('CO_No', sql.Int, updatedArticle.CO_No)
-            .input('EU_Enumere', sql.NVarChar(35), updatedArticle.EU_Enumere)
-            .input('EU_Qte', sql.Numeric(24, 6), updatedArticle.EU_Qte)
-            .input('DE_No', sql.Int, updatedArticle.DE_No)
-            .input('DL_PUTTC', sql.Numeric(24, 6), updatedArticle.DL_PUTTC)
-            .input('DO_DateLivr', sql.DateTime, updatedArticle.DO_DateLivr)
-            .input('CA_Num', sql.NVarChar(17), updatedArticle.CA_Num)
-            .input('DL_QtePL', sql.Numeric(24, 6), updatedArticle.DL_QtePL)
-            .input('DL_CodeTaxe1', sql.NVarChar(5), updatedArticle.DL_CodeTaxe1)
-            .input('CA_No', sql.Int, updatedArticle.CA_No)
-            .input('Demendeur', sql.NVarChar(50), updatedArticle.Demendeur)
-            .input('DL_Ligne', sql.Int, dlLigne)
-            .query(query);
-
-        // Enable the trigger
-        await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
-
-        return result
-    } catch (err) {
-        console.log(`MODEL UPDATE DOCLIGNE: ${err.message}`);
-        
-        // Re-enable the trigger if an error occurs
-        await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE").catch(e => console.log(`Error enabling trigger: ${e.message}`));
-
-        throw new Error('Database error during updating DOCLIGNE');
     }
 };
 

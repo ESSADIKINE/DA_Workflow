@@ -11,6 +11,8 @@ const dbConfig = {
         enableArithAbort: true,
         trustServerCertificate: true,
     },
+    requestTimeout: 300000 // Set the timeout to 5 minutes (300000 ms)
+
   };
 
 let pool;

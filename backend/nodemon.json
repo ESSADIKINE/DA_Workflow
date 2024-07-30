@@ -1,0 +1,6 @@
+{
+    "watch": ["config/*", "controllers/*", "utils/*", "index.js"],
+    "ignore": ["counterData.json", "logs/*", "public/*"],
+    "exec": "node --experimental-json-modules index.js"
+  }
+  

@@ -120,7 +120,6 @@ export const editDAStatutByAcheteur = async (req, res) => {
         const { id } = req.params;
         const { statut } = req.body;
 
-        // Check if the statut is "confermé"
         if (statut === 'Confirmé') {
             const result = await updateDAStatutByAcheteurInDB(id, statut);
             res.status(200).json({
@@ -131,7 +130,6 @@ export const editDAStatutByAcheteur = async (req, res) => {
                 },
             });
         } else {
-            // If the statut is not "confermé", return a 400 status code
             res.status(400).json({
                 status: 'fail',
                 message: 'Invalid statut. The statut must be "Confirmé".',
@@ -145,8 +143,6 @@ export const editDAStatutByAcheteur = async (req, res) => {
         });
     }
 };
-
-
 
 export const editDAStatutByDG = async (req, res) => {
     try {
@@ -176,8 +172,6 @@ export const editDAStatutByDG = async (req, res) => {
         });
     }
 };
-
-
 
 export const searchDA = async (req, res) => {
     try {
