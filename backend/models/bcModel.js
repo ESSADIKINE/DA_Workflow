@@ -1,5 +1,6 @@
 import getConnection from '../config/dbsql.js';
-import { sendEmail, emailTemplates } from '../utils/Emails/Email.js';
+import { sendEmail } from '../utils/Emails/Email.js';
+import { emailTemplates } from '../utils/Emails/Templates.js';
 import sql from 'mssql';
 
 export const getAllBCInDetailsFromDB = async () => {
@@ -73,7 +74,7 @@ export const updateBCStatutByAcheteurInDB = async (id) => {
             const demandeurResult = await pool.request()
                 .input('DO_Piece', sql.NVarChar, id)
                 .query(`
-                    SELECT DISTINCT U.Nom, U.Prenom, U.Email 
+                    SELECT DISTINCT U.Nom, U.Prenom, U.Email, D.DL_Design
                     FROM F_DOCLIGNE D
                     JOIN DA_USERS U ON D.Demendeur = U.Email
                     WHERE D.DO_Piece = @DO_Piece
@@ -85,22 +86,24 @@ export const updateBCStatutByAcheteurInDB = async (id) => {
 
             const demandeurs = demandeurResult.recordset.map(record => ({
                 email: record.Email,
-                fullName: `${record.Nom} ${record.Prenom}`
+                fullName: `${record.Nom} ${record.Prenom}`,
+                DL_Design: record.DL_Design
             }));
             console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
+
             // Send emails to all unique demandeurs
-            for (const { email, fullName } of demandeurs) {
-                const { subject, html } = emailTemplates.envoye(fullName);
+            for (const { email, fullName, DL_Design } of demandeurs) {
+                const { subject, html } = emailTemplates.envoye(fullName, DL_Design);
                 await sendEmail(email, subject, html);
                 console.log(`Email sent to demandeur: ${fullName}`);
             }
         } else {
-            throw new Error('The current statut is not 1 and cannot be updated by the acheteur');
+            throw new Error('The current statut is not 0 and cannot be updated by the acheteur');
         }
     } catch (err) {
-        console.error(`Error updating BC statut by acheteur: ${err.message}`);
-        throw new Error('Database error during updating BC statut by acheteur');
+        console.error(`Error updating DA statut by acheteur: ${err.message}`);
+        throw new Error('Database error during updating DA statut by acheteur');
     }
 };
 
@@ -124,7 +127,7 @@ export const updateBCStatutByDGInDB = async (id, statut) => {
         const demandeurResult = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
             .query(`
-                SELECT DISTINCT U.Nom, U.Prenom, U.Email 
+                SELECT DISTINCT U.Nom, U.Prenom, U.Email, D.DL_Design
                 FROM F_DOCLIGNE D
                 JOIN DA_USERS U ON D.Demendeur = U.Email
                 WHERE D.DO_Piece = @DO_Piece
@@ -151,7 +154,8 @@ export const updateBCStatutByDGInDB = async (id, statut) => {
 
         const demandeurs = demandeurResult.recordset.map(record => ({
             email: record.Email,
-            fullName: `${record.Nom} ${record.Prenom}`
+            fullName: `${record.Nom} ${record.Prenom}`,
+            DL_Design: record.DL_Design
         }));
         console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
@@ -186,22 +190,22 @@ export const updateBCStatutByDGInDB = async (id, statut) => {
                 .query(query);
 
             // Send emails to all unique demandeurs
-            for (const { email, fullName } of demandeurs) {
-                const { subject, html } = emailTemplate(fullName);
+            for (const { email, fullName, DL_Design } of demandeurs) {
+                const { subject, html } = emailTemplate(fullName, DL_Design);
                 await sendEmail(email, subject, html);
                 console.log(`Email sent to demandeur: ${fullName}`);
             }
 
             // Send email to the acheteur
-            const { subject: acheteurSubject, html: acheteurHtml } = emailTemplate(acheteurFullName);
+            const { subject: acheteurSubject, html: acheteurHtml } = emailTemplate(acheteurFullName, demandeurs[0].DL_Design);
             await sendEmail(acheteurEmail, acheteurSubject, acheteurHtml);
             console.log(`Email sent to acheteur: ${acheteurFullName}`);
         } else {
-            throw new Error('The current statut is not 0 and cannot be updated by DG');
+            throw new Error('The current statut is not 1 and cannot be updated by DG');
         }
     } catch (err) {
-        console.error(`Error updating BC statut by DG: ${err.message}`);
-        throw new Error('Database error during updating BC statut by DG');
+        console.error(`Error updating DA statut by DG: ${err.message}`);
+        throw new Error('Database error during updating DA statut by DG');
     }
 };
 
@@ -343,10 +347,6 @@ export const transformDaToBcInDB = async (doPiece) => {
         throw new Error('Database error during transforming DA to BC');
     }
 };
-
-
-
-
 
 
 export const updateBCTypeAndStatutInDB = async (doPiece) => {

@@ -1,5 +1,6 @@
 import getConnection from '../config/dbsql.js';
-import { sendEmail, emailTemplates } from '../utils/Emails/Email.js';
+import { sendEmail } from '../utils/Emails/Email.js';
+import { emailTemplates } from '../utils/Emails/Templates.js';
 import fs from 'fs-extra';
 import path from 'path';
 import sql from 'mssql';
@@ -704,9 +705,9 @@ export const updateDAStatutByAcheteurInDB = async (id) => {
 
             // Retrieve all Demendeur values and their names from F_DOCLIGNE and User tables
             const demandeurResult = await pool.request()
-                .input('DO_Piece', sql.NVarVar, id)
+                .input('DO_Piece', sql.NVarChar, id)
                 .query(`
-                    SELECT DISTINCT U.Nom, U.Prenom, U.Email 
+                    SELECT DISTINCT U.Nom, U.Prenom, U.Email, D.DL_Design
                     FROM F_DOCLIGNE D
                     JOIN DA_USERS U ON D.Demendeur = U.Email
                     WHERE D.DO_Piece = @DO_Piece
@@ -718,13 +719,14 @@ export const updateDAStatutByAcheteurInDB = async (id) => {
 
             const demandeurs = demandeurResult.recordset.map(record => ({
                 email: record.Email,
-                fullName: `${record.Nom} ${record.Prenom}`
+                fullName: `${record.Nom} ${record.Prenom}`,
+                DL_Design: record.DL_Design
             }));
             console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
             // Send emails to all unique demandeurs
-            for (const { email, fullName } of demandeurs) {
-                const { subject, html } = emailTemplates.traitement(fullName);
+            for (const { email, fullName, DL_Design } of demandeurs) {
+                const { subject, html } = emailTemplates.traitement(fullName, DL_Design);
                 await sendEmail(email, subject, html);
                 console.log(`Email sent to demandeur: ${fullName}`);
             }
@@ -753,11 +755,12 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
         const { DO_Statut } = statutResult.recordset[0];
         console.log(`Current DO_Statut: ${DO_Statut}`);
 
+
         // Retrieve all Demendeur values and their names from F_DOCLIGNE and User tables
         const demandeurResult = await pool.request()
             .input('DO_Piece', sql.NVarChar, id)
             .query(`
-                SELECT DISTINCT U.Nom, U.Prenom, U.Email 
+                SELECT DISTINCT U.Nom, U.Prenom, U.Email, D.DL_Design
                 FROM F_DOCLIGNE D
                 JOIN DA_USERS U ON D.Demendeur = U.Email
                 WHERE D.DO_Piece = @DO_Piece
@@ -781,7 +784,8 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
 
         const demandeurs = demandeurResult.recordset.map(record => ({
             email: record.Email,
-            fullName: `${record.Nom} ${record.Prenom}`
+            fullName: `${record.Nom} ${record.Prenom}`,
+            DL_Design: record.DL_Design
         }));
         console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
@@ -808,7 +812,7 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
             const query = `
                 UPDATE F_DOCENTETE
                 SET DO_Statut = @DO_Statut
-                WHERE DO_Piece = @DO_Piece
+                WHERE DO_Piece = @DO_Piece 
             `;
             await pool.request()
                 .input('DO_Piece', sql.NVarChar, id)
@@ -816,14 +820,14 @@ export const updateDAStatutByDGInDB = async (id, statut) => {
                 .query(query);
 
             // Send emails to all unique demandeurs
-            for (const { email, fullName } of demandeurs) {
-                const { subject, html } = emailTemplate(fullName);
+            for (const { email, fullName, DL_Design } of demandeurs) {
+                const { subject, html } = emailTemplate(fullName, DL_Design);
                 await sendEmail(email, subject, html);
                 console.log(`Email sent to demandeur: ${fullName}`);
             }
 
             // Send email to the acheteur
-            const { subject: acheteurSubject, html: acheteurHtml } = emailTemplate(acheteurFullName);
+            const { subject: acheteurSubject, html: acheteurHtml } = emailTemplate(acheteurFullName, demandeurs[0].DL_Design);
             await sendEmail(acheteurEmail, acheteurSubject, acheteurHtml);
             console.log(`Email sent to acheteur: ${acheteurFullName}`);
         } else {
