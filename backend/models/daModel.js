@@ -127,14 +127,14 @@ const getExpeditIndex = async (pool, expeditIntitule) => {
     }
 };
 
-const getAffaireNo = async (pool, affaireIntitule) => {
+const getAffaireNo = async (pool, CA_Intitule) => {
     const request = new sql.Request(pool);
-    const result = await request.input('affaireIntitule', sql.NVarChar, affaireIntitule).query(`
-        SELECT CA_Num 
-        FROM F_COMPTEA 
-        WHERE CA_Intitule = @affaireIntitule
+    const result = await request.input('CA_Intitule', sql.NVarChar, CA_Intitule).query(`
+        SELECT CA_Num
+        FROM F_COMPTEA
+        WHERE CA_Intitule = @CA_Intitule
     `);
-
+    console.log(result);
     if (result.recordset.length > 0) {
         return result.recordset[0].CA_Num;
     } else {
@@ -490,10 +490,10 @@ export const getAllDAInBriefFromDB = async () => {
 };
 
 export const updateDAInDB = async (id, updatedDA) => {
-    try {
-        const pool = await getConnection();
-        const transaction = new sql.Transaction(pool);
+    const pool = await getConnection();
+    const transaction = new sql.Transaction(pool);
 
+    try {
         await transaction.begin();
 
         // Set DO_Cours based on the provided information
@@ -505,10 +505,24 @@ export const updateDAInDB = async (id, updatedDA) => {
             DO_Cours = exchangeRate !== null ? exchangeRate : 10.72;
         }
         updatedDA.DO_Cours = DO_Cours;
-        updatedDA.CA_Num = await getAffaireNo(pool, updatedDA.CA_Intitule);
+
+        // Log the received updatedDA object for debugging
+        console.log("Received updatedDA object:", updatedDA);
+
+        // Fetching additional information
         updatedDA.DO_Expedit = await getExpeditIndex(pool, updatedDA.E_Intitule);
+        console.log(`Set DO_Expedit: ${updatedDA.DO_Expedit}`);
         updatedDA.CO_No = await getCollaborateurNo(pool, updatedDA.fullName);
+        console.log(`Set CO_No: ${updatedDA.CO_No}`);
         updatedDA.DE_No = await getDepotNo(pool, updatedDA.DE_Intitule);
+        console.log(`Set DE_No: ${updatedDA.DE_No}`);
+        updatedDA.CA_Num = await getAffaireNo(pool, updatedDA.CA_Intitule);
+        console.log(`Set CA_Num: ${updatedDA.CA_Num}`);
+
+        // Disable the trigger
+        await transaction.request().query(`
+            DISABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE;
+        `);
 
         // Update F_DOCENTETE
         const updateDocEnteteQuery = `
@@ -552,19 +566,38 @@ export const updateDAInDB = async (id, updatedDA) => {
             .input('DE_No', sql.Int, updatedDA.DE_No)
             .query(updateDocLigneQuery);
 
+        // Re-enable the trigger
+        await transaction.request().query(`
+            ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE;
+        `);
+
         await transaction.commit();
 
         return { message: 'Update successful' };
     } catch (err) {
         console.log(`MODEL UPDATE DA: ${err.message}`);
+        // Rollback the transaction if an error occurs
+        if (transaction._aborted) {
+            console.log("Transaction was aborted.");
+        } else {
+            try {
+                await transaction.rollback();
+                console.log("Transaction rolled back successfully.");
+            } catch (rollbackErr) {
+                console.log(`Error rolling back transaction: ${rollbackErr.message}`);
+            }
+        }
         throw new Error('Database error during updating DA');
     }
 };
 
 
 export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
+    console.log(`Received doPiece: ${doPiece}, dlLigne: ${dlLigne}, updatedArticle:`, updatedArticle);
+
+    let pool;
     try {
-        const pool = await getConnection();
+        pool = await getConnection();
         const transaction = new sql.Transaction(pool);
 
         await transaction.begin();
@@ -577,13 +610,21 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
             .input('DO_Piece', sql.NVarChar, doPiece)
             .query('SELECT DO_TotalHTNet, DO_TotalTTC FROM F_DOCENTETE WHERE DO_Piece = @DO_Piece');
 
+        console.log("F_DOCENTETE query result:", totalHTNetResult.recordset);
+
         const oldHTResult = await transaction.request()
             .input('DO_Piece', sql.NVarChar, doPiece)
             .input('DL_Ligne', sql.Int, dlLigne)
             .query('SELECT DL_MontantHT, DL_MontantTTC FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece AND DL_Ligne = @DL_Ligne');
 
-        if (totalHTNetResult.recordset.length === 0 || oldHTResult.recordset.length === 0) {
-            throw new Error('Record not found');
+        console.log("F_DOCLIGNE query result:", oldHTResult.recordset);
+
+        if (totalHTNetResult.recordset.length === 0) {
+            throw new Error(`F_DOCENTETE record not found for DO_Piece: ${doPiece}`);
+        }
+
+        if (oldHTResult.recordset.length === 0) {
+            throw new Error(`F_DOCLIGNE record not found for DO_Piece: ${doPiece}, DL_Ligne: ${dlLigne}`);
         }
 
         let totalHTNet = totalHTNetResult.recordset[0].DO_TotalHTNet;
@@ -594,13 +635,14 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
         const articleRef = await getArticleRef(pool, updatedArticle.articleDetail);
         const articleDesign = await getArticleDesign(pool, updatedArticle.articleDetail);
         const poidNet = await getArticlePoid(pool, updatedArticle.articleDetail) * updatedArticle.DL_Qte;
+        const DE_No = await getDepotNo(pool, updatedArticle.DE_Intitule);
         const TA_Taux = await getTaxe(pool, updatedArticle.DL_CodeTaxe1);
-        const DL_PUTTC = updatedArticle.DL_PrixUnitaire * (1 + TA_Taux / 100);
-        const DL_MontantHT = updatedArticle.DL_Qte * updatedArticle.DL_PrixUnitaire;
-        const DL_MontantTTC = updatedArticle.DL_Qte * updatedArticle.DL_PrixUnitaire * (1 + TA_Taux / 100);
+        // const DL_PUTTC = ;
+        // const DL_MontantHT = ;
+        // const DL_MontantTTC = ;
 
-        totalHTNet = totalHTNet + DL_MontantHT - oldHT;
-        totalTTC = totalTTC + DL_MontantTTC - oldTTC;
+        // totalHTNet = ;
+        // totalTTC = ;
 
         const query = `
             UPDATE F_DOCLIGNE
@@ -609,20 +651,17 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
                 DL_Design = @DL_Design,
                 DL_Qte = @DL_Qte,
                 DL_PrixUnitaire = @DL_PrixUnitaire,
-                CO_No = @CO_No,
                 EU_Enumere = @EU_Enumere,
                 EU_Qte = @EU_Qte,
                 DE_No = @DE_No,
                 DL_PUTTC = @DL_PUTTC,
                 DO_DateLivr = @DO_DateLivr,
-                CA_Num = @CA_Num,
                 DL_QtePL = @DL_QtePL,
                 DL_CodeTaxe1 = @DL_CodeTaxe1,
-                CA_No = @CA_No,
                 Demendeur = @Demendeur,
                 DL_MontantHT = @DL_MontantHT,
                 DL_MontantTTC = @DL_MontantTTC
-            WHERE 
+            WHERE
                 DO_Piece = @DO_Piece AND
                 DL_Ligne = @DL_Ligne;
 
@@ -639,21 +678,18 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
             .input('DL_PoidsNet', sql.Numeric(24, 6), poidNet)
             .input('DL_Qte', sql.Numeric(24, 6), updatedArticle.DL_Qte)
             .input('DL_PrixUnitaire', sql.Numeric(24, 6), updatedArticle.DL_PrixUnitaire)
-            .input('CO_No', sql.Int, updatedArticle.CO_No)
             .input('EU_Enumere', sql.NVarChar(35), updatedArticle.EU_Enumere)
             .input('EU_Qte', sql.Numeric(24, 6), updatedArticle.DL_Qte)
-            .input('DE_No', sql.Int, updatedArticle.DE_No)
-            .input('DL_PUTTC', sql.Numeric(24, 6), DL_PUTTC)
+            .input('DE_No', sql.Int, DE_No)
+            .input('DL_PUTTC', sql.Numeric(24, 6), updatedArticle.DL_PrixUnitaire * (1 + TA_Taux / 100))
             .input('DO_DateLivr', sql.DateTime, adjustDateForSmallDateTime(updatedArticle.DO_DateLivr))
-            .input('CA_Num', sql.NVarChar(17), updatedArticle.CA_Num)
             .input('DL_QtePL', sql.Numeric(24, 6), updatedArticle.DL_QtePL)
             .input('DL_CodeTaxe1', sql.NVarChar(5), updatedArticle.DL_CodeTaxe1)
-            .input('CA_No', sql.Int, updatedArticle.CA_No)
             .input('Demendeur', sql.NVarChar(50), updatedArticle.Demendeur)
-            .input('DL_MontantHT', sql.Numeric(24, 6), DL_MontantHT)
-            .input('DL_MontantTTC', sql.Numeric(24, 6), DL_MontantTTC)
-            .input('DO_TotalHTNet', sql.Numeric(24, 6), totalHTNet)
-            .input('DO_TotalTTC', sql.Numeric(24, 6), totalTTC)
+            .input('DL_MontantHT', sql.Numeric(24, 6), updatedArticle.DL_Qte * updatedArticle.DL_PrixUnitaire)
+            .input('DL_MontantTTC', sql.Numeric(24, 6), updatedArticle.DL_Qte * updatedArticle.DL_PrixUnitaire * (1 + TA_Taux / 100))
+            .input('DO_TotalHTNet', sql.Numeric(24, 6), totalHTNet + updatedArticle.DL_Qte * updatedArticle.DL_PrixUnitaire - oldHT)
+            .input('DO_TotalTTC', sql.Numeric(24, 6), totalTTC + updatedArticle.DL_Qte * updatedArticle.DL_PrixUnitaire * (1 + TA_Taux / 100) - oldTTC)
             .query(query);
 
         await transaction.commit();
@@ -661,16 +697,20 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
         // Enable the trigger
         await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE");
 
-        return result;
+        return { message: 'Update successful' };
     } catch (err) {
         console.log(`MODEL UPDATE DOCLIGNE: ${err.message}`);
 
         // Re-enable the trigger if an error occurs
-        await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE").catch(e => console.log(`Error enabling trigger: ${e.message}`));
+        if (pool) {
+            await pool.request().query("ENABLE TRIGGER TG_UPD_F_DOCLIGNE ON F_DOCLIGNE").catch(e => console.log(`Error enabling trigger: ${e.message}`));
+        }
 
         throw new Error('Database error during updating DOCLIGNE');
     }
 };
+
+
 
 
 export const updateDAStatutByAcheteurInDB = async (id) => {

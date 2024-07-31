@@ -19,13 +19,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -64,7 +60,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>
@@ -118,13 +114,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -163,7 +155,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>
@@ -217,13 +209,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -262,7 +250,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>
@@ -316,13 +304,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -361,7 +345,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>
@@ -415,13 +399,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -460,7 +440,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>
@@ -514,13 +494,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -559,7 +535,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>
@@ -613,13 +589,9 @@ export const emailTemplates = {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 70%;
             margin: auto;
-            height: 80vh;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .header {
             border-bottom: 2px solid #e19c23;
@@ -658,7 +630,7 @@ export const emailTemplates = {
             margin: 5px 0 0 0;
         }
         .img {
-            width: 35%;
+            width: 15%;
         }
     </style>
 </head>

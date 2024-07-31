@@ -324,17 +324,30 @@ export const transformDaToBcInDB = async (doPiece) => {
         // Retrieve all Demendeur values from F_DOCLIGNE
         const demandeurResult = await pool.request()
             .input('DO_Piece', sql.NVarChar, doPiece.replace('DA', 'FBC'))
-            .query("SELECT DISTINCT Demendeur FROM F_DOCLIGNE WHERE DO_Piece = @DO_Piece");
+            .query(`
+                SELECT DISTINCT U.Nom, U.Prenom, U.Email, D.DL_Design
+                FROM F_DOCLIGNE D
+                JOIN DA_USERS U ON D.Demendeur = U.Email
+                WHERE D.DO_Piece = @DO_Piece
+            `);
+            if (!demandeurResult.recordset.length) {
+                throw new Error(`No demandeurs found for DO_Piece: ${id}`);
+            }
 
-        const demandeurs = demandeurResult.recordset.map(record => record.Demendeur);
-        console.log(`Demandeurs found: ${demandeurs.join(', ')}`);
+            const demandeurs = demandeurResult.recordset.map(record => ({
+                email: record.Email,
+                fullName: `${record.Nom} ${record.Prenom}`,
+                DL_Design: record.DL_Design
+            }));
+            console.log(`Demandeurs found: ${demandeurs.map(d => d.fullName).join(', ')}`);
 
-        // Send emails to all unique demandeurs
-        for (const demandeur of demandeurs) {
-            const { subject, html } = emailTemplates.preparation(demandeur);
-            await sendEmail(demandeur, subject, html);
-            console.log(`Email sent to demandeur: ${demandeur}`);
+            // Send emails to all unique demandeurs
+            for (const { email, fullName, DL_Design } of demandeurs) {
+                const { subject, html } = emailTemplates.preparation(fullName, DL_Design);
+                await sendEmail(email, subject, html);
+                console.log(`Email sent to demandeur: ${fullName}`);
         }
+
 
         return { message: 'DA successfully transformed to BC' };
     } catch (err) {
