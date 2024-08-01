@@ -1,25 +1,40 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { sendOtpThunk, signUpThunk, clearOtp } from '../redux/users/authSlice';
+import { sendOtpThunk, checkEmailThunk } from '../redux/user/userSlice';
 
-const Signup = () => {
+const SignUpPage = () => {
+  const [nom, setNom] = useState('');
+  const [prenom, setPrenom] = useState('');
   const [email, setEmail] = useState('');
-  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
-  const [otpInput, setOtpInput] = useState('');
+  const [rePassword, setRePassword] = useState('');
   const dispatch = useDispatch();
-  const otpState = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const handleSendOtp = async () => {
+    if (password !== rePassword) {
+      alert('Passwords do not match!');
+      return;
+    }
+
     try {
-      const resultAction = await dispatch(sendOtpThunk({ email, fullName }));
-      if (sendOtpThunk.fulfilled.match(resultAction)) {
+      // Check if email exists
+      const emailCheckResult = await dispatch(checkEmailThunk({ email })).unwrap();
+      console.log('Email check result:', emailCheckResult);
+      if (emailCheckResult.status === 'exists') {
+        alert('Email already exists');
+        return;
+      }
+
+      const resultAction = await dispatch(sendOtpThunk({ email, fullName: `${prenom} ${nom}` })).unwrap();
+      console.log('Result action:', resultAction); // Log the result for debugging
+      if (resultAction.status === 'success') { // Check the actual response status
+        localStorage.setItem('signupDetails', JSON.stringify({ nom, prenom, email, password }));
         alert('OTP sent successfully!');
+        navigate('/verify-otp'); // Navigate to OTP verification page
       } else {
-        alert(resultAction.payload.error);
+        alert(resultAction.message || 'Failed to send OTP'); // Provide more information
       }
     } catch (err) {
       console.error('Error sending OTP:', err);
@@ -27,33 +42,21 @@ const Signup = () => {
     }
   };
 
-  const handleSignup = async () => {
-    try {
-      const [Prenom, Nom] = fullName.split(' ');
-      const resultAction = await dispatch(
-        signUpThunk({ Nom, Prenom, Email: email, Pass: password, Role: role, otp: otpInput })
-      );
-      if (signUpThunk.fulfilled.match(resultAction)) {
-        alert('Signup successful!');
-        dispatch(clearOtp());
-        navigate('/'); // Redirect to home page
-      } else {
-        alert(resultAction.payload.error);
-      }
-    } catch (err) {
-      console.error('Error signing up:', err);
-      alert('Signup failed!');
-    }
-  };
-
   return (
     <div>
-      <h1>Signup</h1>
+      <h1>Sign Up</h1>
       <input
         type="text"
-        placeholder="Enter your full name"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
+        placeholder="Enter your last name"
+        value={nom}
+        onChange={(e) => setNom(e.target.value)}
+      />
+      <br />
+      <input
+        type="text"
+        placeholder="Enter your first name"
+        value={prenom}
+        onChange={(e) => setPrenom(e.target.value)}
       />
       <br />
       <input
@@ -70,18 +73,16 @@ const Signup = () => {
         onChange={(e) => setPassword(e.target.value)}
       />
       <br />
-      <button onClick={handleSendOtp}>Send OTP</button>
-      <br />
       <input
-        type="text"
-        placeholder="Enter OTP"
-        value={otpInput}
-        onChange={(e) => setOtpInput(e.target.value)}
+        type="password"
+        placeholder="Re-enter your password"
+        value={rePassword}
+        onChange={(e) => setRePassword(e.target.value)}
       />
       <br />
-      <button onClick={handleSignup}>Signup</button>
+      <button onClick={handleSendOtp}>Send OTP</button>
     </div>
   );
 };
 
-export default Signup;
+export default SignUpPage;

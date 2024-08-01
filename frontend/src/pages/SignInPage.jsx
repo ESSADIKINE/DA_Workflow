@@ -1,9 +1,10 @@
+// src/pages/SignInPage.jsx
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { loginThunk } from '../redux/users/authSlice';
+import { loginThunk } from '../redux/user/userSlice';
 
-const Login = () => {
+const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
@@ -45,4 +46,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignInPage;

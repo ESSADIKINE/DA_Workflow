@@ -1,12 +1,12 @@
 import express from 'express';
-import { login, logout, signUp, sendOTP, verifyOTP } from '../controllers/authController.js';
+import { login, logout, sendOTP, verifyOTPAndSignup, checkEmailExists } from '../controllers/authController.js';
 
 const router = express.Router();
 
 router.post('/login', login);
 router.get('/logout', logout);
-router.post('/signup', signUp);
+router.post('/check-email', checkEmailExists);
 router.post('/send-otp', sendOTP);
-router.post('/verify-otp', verifyOTP);
+router.post('/verify-otp-signup', verifyOTPAndSignup);
 
 export default router;

@@ -54,10 +54,12 @@ export const getAllUsers = async () => {
 export const createUser = async (user) => {
   try {
     const { Nom, Prenom, Email, Role, Pass } = user;
+    const Date_De_Creation = new Date().toISOString();
     const pool = await getConnection();
     const query = `
-      INSERT INTO DA_USERS (Nom, Prenom, Email, Pass, Role)
-      VALUES (@Nom, @Prenom, @Email, @Pass, @Role)
+      INSERT INTO DA_USERS (Nom, Prenom, Email, Pass, Role, Date_De_Creation)
+      OUTPUT INSERTED.*
+      VALUES (@Nom, @Prenom, @Email, @Pass, @Role, @Date_De_Creation)
     `;
     const result = await pool.request()
       .input('Nom', sql.NVarChar, Nom)
@@ -65,8 +67,14 @@ export const createUser = async (user) => {
       .input('Email', sql.NVarChar, Email)
       .input('Pass', sql.NVarChar, Pass)
       .input('Role', sql.NVarChar, Role)
+      .input('Date_De_Creation', sql.DateTime, Date_De_Creation)
       .query(query);
-    return result.recordset[0];
+
+    if (result.recordset && result.recordset.length > 0) {
+      return result.recordset[0];
+    } else {
+      throw new Error('User creation failed, no record returned');
+    }
   } catch (err) {
     console.log(`MODEL CREATE USER: ${err.message}`);
     throw new Error('Database error during user creation');

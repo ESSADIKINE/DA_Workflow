@@ -13,7 +13,7 @@ import config from './config/config.js';
 const app = express();
 
 app.use(cors()); // Enable CORS
-app.use(express.json());
+app.use(express.json()); // Ensure JSON parsing middleware is used
 app.use(cookieParser());
 
 app.use('/api/v1/auth', authRoutes);
