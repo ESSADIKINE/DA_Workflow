@@ -1,5 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import collaboratorRoutes from './routes/userRoutes.js';
 import articleRoutes from './routes/articleRoutes.js';
@@ -11,6 +12,7 @@ import config from './config/config.js';
 
 const app = express();
 
+app.use(cors()); // Enable CORS
 app.use(express.json());
 app.use(cookieParser());
 

@@ -7,7 +7,7 @@ import {
   deleteUser, 
   updateMyProfile 
 } from '../controllers/userController.js';
-import { updatePassword } from '../controllers/authController.js';
+// import { updatePassword } from '../controllers/authController.js';
 import { protect, isAdmin, isAchteur } from '../utils/middleware.js';
 
 const router = express.Router();
@@ -19,7 +19,7 @@ router.post('/users', isAdmin, addUser);
 router.put('/users/:id', isAdmin, updateUser);
 router.get('/users/search', isAdmin, searchUser);
 router.delete('/users/:id', isAdmin, deleteUser);
-router.patch('/users/:id/password', isAdmin, updatePassword);
+// router.patch('/users/:id/password', isAdmin, updatePassword);
 
 router.put('/users/me', updateMyProfile);
 

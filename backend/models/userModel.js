@@ -53,7 +53,7 @@ export const getAllUsers = async () => {
 
 export const createUser = async (user) => {
   try {
-    const { User_id, Nom, Prenom, Email, Role, Pass } = user;
+    const { Nom, Prenom, Email, Role, Pass } = user;
     const pool = await getConnection();
     const query = `
       INSERT INTO DA_USERS (Nom, Prenom, Email, Pass, Role)
@@ -66,7 +66,7 @@ export const createUser = async (user) => {
       .input('Pass', sql.NVarChar, Pass)
       .input('Role', sql.NVarChar, Role)
       .query(query);
-    return result;
+    return result.recordset[0];
   } catch (err) {
     console.log(`MODEL CREATE USER: ${err.message}`);
     throw new Error('Database error during user creation');

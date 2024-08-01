@@ -1,7 +1,15 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
-import { findUserByEmail, updateUserPasswordInDB } from '../models/userModel.js';
+import otpGenerator from 'otp-generator';
+import dotenv from 'dotenv';
+import { findUserByEmail, createUser } from '../models/userModel.js';
+import { sendEmail } from '../utils/Emails/Email.js';
+import { emailTemplates } from '../utils/Emails/Templates.js';
+
+dotenv.config();
+
+const otpStore = {}; // In-memory store for OTPs
 
 export const correctPassword = async (candidatePassword, userPassword) => {
   return await bcrypt.compare(candidatePassword, userPassword);
@@ -72,28 +80,89 @@ export const logout = (req, res) => {
   res.status(200).json({ status: 'success' });
 };
 
-export const updatePassword = async (req, res) => {
+export const signUp = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { Pass } = req.body;
+    const { Nom, Prenom, Email, Pass, Role, otp } = req.body;
 
-    if (!Pass) throw new Error('Password not provided');
+    if (!Nom || !Prenom || !Email || !Pass || !Role || !otp) {
+      throw new Error('Please provide all required fields');
+    }
 
-    // Hash the new password
+    // Email format validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@decayeuxstm\.com$/;
+    if (!emailRegex.test(Email)) {
+      throw new Error('Email must be in the format example@decayeuxstm.com');
+    }
+
+    const existingUser = await findUserByEmail(Email);
+    if (existingUser) {
+      throw new Error('Email is already taken');
+    }
+
+    if (otpStore[Email] !== otp) throw new Error('Invalid OTP');
+
     const hashedPassword = await bcrypt.hash(Pass, parseInt(process.env.HASH_SALT, 10));
 
-    const result = await updateUserPasswordInDB(id, hashedPassword);
+    const newUser = await createUser({
+      Nom,
+      Prenom,
+      Email,
+      Pass: hashedPassword,
+      Role,
+    });
 
-    console.log('Update Password Result:', result);
+    createSendToken(newUser, res);
+  } catch (err) {
+    console.log(`SIGNUP: ${err.message}`);
+    res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+export const sendOTP = async (req, res) => {
+  try {
+    const { email, fullName } = req.body;
+    if (!email || !fullName) throw new Error('Please provide email and full name');
+
+    const otp = otpGenerator.generate(6, { upperCase: false, specialChars: false });
+    otpStore[email] = otp;
+
+    const { subject, html } = emailTemplates.otp(fullName, otp);
+    await sendEmail(email, subject, html);
+
+    // Set OTP expiration (10 minutes)
+    setTimeout(() => {
+      delete otpStore[email];
+    }, 10 * 60 * 1000);
+
     res.status(200).json({
       status: 'success',
-      data: {
-        message: 'Password updated successfully',
-        result,
-      },
+      message: 'OTP sent successfully',
     });
   } catch (err) {
-    console.log(`UPDATE PASSWORD: ${err.message}`);
+    console.log(`SEND OTP: ${err.message}`);
+    res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+export const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) throw new Error('Please provide email and OTP');
+
+    if (otpStore[email] !== otp) throw new Error('Invalid OTP');
+
+    res.status(200).json({
+      status: 'success',
+      message: 'OTP verified successfully',
+    });
+  } catch (err) {
+    console.log(`VERIFY OTP: ${err.message}`);
     res.status(500).json({
       status: 'fail',
       message: err.message,
