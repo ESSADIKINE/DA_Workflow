@@ -38,6 +38,8 @@ export const createSendToken = (user, res) => {
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
+  console.log('Generated token:', token); // Log the generated token
+
   res.cookie(process.env.COOKIE_JWT, token, cookieOptions);
 
   user.Pass = undefined;
@@ -85,8 +87,11 @@ export const login = async (req, res) => {
 
     const user = await findUserByEmail(email);
 
-    if (!user || !(await correctPassword(password, user.Pass)))
+    if (!user || !(await correctPassword(password, user.Pass))) {
       throw new Error('Incorrect email or password');
+    }
+
+    console.log('User found:', user); // Log the found user
 
     createSendToken(user, res);
   } catch (err) {

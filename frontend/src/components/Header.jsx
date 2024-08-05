@@ -51,7 +51,6 @@ const Header = () => {
   useEffect(() => {
     return () => setAnchorEl(null);
   }, [pathname]);
-
   return (
     <Box position={"fixed"} top={0} left={0} right={0} sx={{ backgroundColor: theme.palette.background.default, zIndex: 100, py: "10px" }}>
       <Container maxWidth="md">

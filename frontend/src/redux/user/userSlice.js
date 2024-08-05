@@ -29,19 +29,16 @@ export const sendOtpThunk = createAsyncThunk(
 );
 // Async thunk for verifying OTP and completing signup
 export const verifyOtpAndSignupThunk = createAsyncThunk(
-    'auth/verifyOtpAndSignup',
-    async ({ Nom, Prenom, Email, Pass, Role, otp }, thunkAPI) => {
-      console.log('verifyOtpAndSignupThunk called with:', { Nom, Prenom, Email, Pass, Role, otp }); // Log input
-      try {
-        const response = await signUp(Nom, Prenom, Email, Pass, Role, otp);
-        console.log('Response from signUp:', response); // Log the response
-        return response;
-      } catch (error) {
-        console.error('Error in verifyOtpAndSignupThunk:', error); // Log the error
-        return thunkAPI.rejectWithValue({ error: error.message });
-      }
+  'auth/verifyOtpAndSignup',
+  async ({ Nom, Prenom, Email, Pass, Role, otp }, thunkAPI) => {
+    try {
+      const response = await signUp(Nom, Prenom, Email, Pass, Role, otp);
+      return response; // Ensure this includes user and token
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ error: error.message });
     }
-  );
+  }
+);
 
 // Async thunk for logging in
 export const loginThunk = createAsyncThunk(
@@ -49,7 +46,7 @@ export const loginThunk = createAsyncThunk(
   async ({ email, password }, thunkAPI) => {
     try {
       const response = await login(email, password);
-      return response;
+      return response; // Ensure this includes user and token
     } catch (error) {
       return thunkAPI.rejectWithValue({ error: error.message });
     }
@@ -134,7 +131,7 @@ const userSlice = createSlice({
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
+        state.user = action.payload.data.user;
         state.token = action.payload.token;
       })
       .addCase(loginThunk.rejected, (state, action) => {

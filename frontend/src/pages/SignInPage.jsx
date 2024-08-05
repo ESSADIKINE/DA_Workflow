@@ -1,6 +1,6 @@
 // src/pages/SignInPage.jsx
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loginThunk } from '../redux/user/userSlice';
 
@@ -9,14 +9,24 @@ const SignInPage = () => {
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (user) {
+      console.log('User logged in, redirecting to home page'); // Log user login status
+      navigate('/'); // Redirect to home page if already logged in
+    }
+  }, [user, navigate]);
 
   const handleLogin = async () => {
     try {
-      const resultAction = await dispatch(loginThunk({ email, password }));
-      if (loginThunk.fulfilled.match(resultAction)) {
+      console.log('Attempting to login with:', { email, password }); // Log login attempt
+      const resultAction = await dispatch(loginThunk({ email, password })).unwrap();
+      console.log('Login result:', resultAction); // Log the result of the login attempt
+      if (resultAction.status === 'success') {
         navigate('/'); // Redirect to home page
       } else {
-        alert(resultAction.payload.error);
+        alert(resultAction.message || 'Login failed');
       }
     } catch (err) {
       console.error('Error logging in:', err);
