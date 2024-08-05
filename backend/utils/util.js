@@ -24,11 +24,11 @@ export const createSendToken = (user, res) => {
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
+    sameSite: 'None',
+    secure: process.env.NODE_ENV === 'production',
   };
 
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-
-  res.cookie(process.env.COOKIE_JWT, token, cookieOptions);
+  res.cookie('jwt', token, cookieOptions);
 
   user.password = undefined;
 

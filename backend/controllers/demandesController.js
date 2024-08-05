@@ -1,11 +1,25 @@
-import { createDemandeInDB, getDemandesFromDB, getDemandeBySearchInDB, updateDemandeInDB, deleteDemandeInDB } from '../models/demandesModel.js';
+import {
+  createDemandeInDB,
+  getDemandesFromDB,
+  getDemandeBySearchInDB,
+  updateDemandeInDB,
+  deleteDemandeInDB,
+  getArticlesInSelection,
+} from '../models/demandesModel.js';
 
 export const createDemande = async (req, res) => {
   try {
-    console.log(req.user); // Add this line
+    console.log(req.user);
     const { AR_Ref, AR_Design, Qty, description, Demande_statut } = req.body;
-    const email = req.user.Email; // Ensure this matches the user property name from your middleware
-    const newDemande = await createDemandeInDB({ AR_Ref, AR_Design, Qty, description, Demande_statut, email });
+    const email = req.user.Email;
+    const newDemande = await createDemandeInDB({
+      AR_Ref,
+      AR_Design,
+      Qty,
+      description,
+      Demande_statut,
+      email,
+    });
     res.status(201).json({
       status: 'success',
       data: newDemande,
@@ -86,6 +100,25 @@ export const deleteDemande = async (req, res) => {
     });
   } catch (err) {
     console.log(`DELETE DEMANDE: ${err.message}`);
+    res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+export const articlesBySelection = async (req, res) => {
+  try {
+    const { key } = req.query;
+    console.log('Received key:', key);
+    const articles = await getArticlesInSelection(key);
+    console.log('Fetched articles:', articles);
+    res.status(200).json({
+      status: 'success',
+      data: articles,
+    });
+  } catch (err) {
+    console.log(`SEARCH ARTICLE: ${err.message}`);
     res.status(500).json({
       status: 'fail',
       message: err.message,

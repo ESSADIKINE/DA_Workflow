@@ -32,7 +32,8 @@ export const getDemandesFromDB = async () => {
         u.Email, 
         l.AR_Ref, 
         l.AR_Design, 
-        l.Qty, 
+        l.Qty,
+        l.description,
         l.Date_De_Creation, 
         l.Demande_statut
       FROM 
@@ -57,7 +58,8 @@ export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
         u.Email, 
         l.AR_Ref, 
         l.AR_Design, 
-        l.Qty, 
+        l.Qty,
+        l.description,
         l.Date_De_Creation, 
         l.Demande_statut
       FROM 
@@ -114,3 +116,25 @@ export const deleteDemandeInDB = async (id) => {
     throw new Error('Database error during demande deletion');
   }
 };
+
+export const getArticlesInSelection = async (key) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT CONCAT([AR_Ref], ' - ', [AR_Design]) AS article
+      FROM F_ARTICLE
+      WHERE AR_Ref LIKE @key OR AR_Design LIKE @key
+    `;
+    const result = await pool.request()
+      .input('key', sql.NVarChar, `%${key}%`)
+      .query(query);
+    console.log("Database query result:", result.recordset); // Log database query result
+    return result.recordset.map(record => record.article);
+  } catch (err) {
+    console.log(`MODEL SEARCH ARTICLES: ${err.message}`);
+    throw new Error('Database error during article search');
+  }
+};
+
+
+

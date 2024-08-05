@@ -25,7 +25,7 @@ export const protect = async (req, res, next) => {
     if (!currentUser) {
       return res.status(401).json({
         status: 'fail',
-        message: 'The user belonging to this token does no longer exist.',
+        message: 'The user belonging to this token no longer exists.',
       });
     }
 
@@ -38,6 +38,7 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+
 
 export const isAdmin = (req, res, next) => {
   if (req.user.Role === 'admin') {

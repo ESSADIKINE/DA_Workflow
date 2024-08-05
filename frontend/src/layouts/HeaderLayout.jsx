@@ -9,7 +9,7 @@ const HeaderLayout = () => {
     <>
       <ScrollToTop />
       <Header />
-      <Box pt={"55px"}>
+      <Box pt={"60px"}>
         <Outlet />
       </Box>
     </>

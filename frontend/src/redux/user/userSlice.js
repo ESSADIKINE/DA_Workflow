@@ -2,6 +2,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { checkEmail, sendOtp, signUp, login, signOutApi } from './authApi';
 
+// Load user info from localStorage
+const userInfo = JSON.parse(localStorage.getItem('user-info')) || {};
+
 // Async thunk for checking if email exists
 export const checkEmailThunk = createAsyncThunk(
   'auth/checkEmail',
@@ -27,6 +30,7 @@ export const sendOtpThunk = createAsyncThunk(
     }
   }
 );
+
 // Async thunk for verifying OTP and completing signup
 export const verifyOtpAndSignupThunk = createAsyncThunk(
   'auth/verifyOtpAndSignup',
@@ -57,8 +61,8 @@ const userSlice = createSlice({
   name: 'auth',
   initialState: {
     mode: 'light',
-    user: null,
-    token: null,
+    user: userInfo.user || null,
+    token: userInfo.token || null,
     otp: '',
     email: '',
     loading: false,
@@ -79,10 +83,12 @@ const userSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
+      localStorage.setItem('user-info', JSON.stringify({ user: state.user, token: state.token }));
     },
     signOut: (state) => {
       state.user = null;
       state.token = null;
+      localStorage.removeItem('user-info');
     },
   },
   extraReducers: (builder) => {
@@ -119,6 +125,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.user = action.payload.data.user;
         state.token = action.payload.token;
+        localStorage.setItem('user-info', JSON.stringify({ user: state.user, token: state.token }));
       })
       .addCase(verifyOtpAndSignupThunk.rejected, (state, action) => {
         console.error('verifyOtpAndSignupThunk rejected with:', action.payload.error); // Log rejected state
@@ -133,6 +140,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.user = action.payload.data.user;
         state.token = action.payload.token;
+        localStorage.setItem('user-info', JSON.stringify({ user: state.user, token: state.token }));
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.loading = false;

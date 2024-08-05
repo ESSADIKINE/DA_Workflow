@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
@@ -11,6 +10,8 @@ import SignUpPage from './pages/SignUpPage';
 import SignInPage from './pages/SignInPage';
 import VerifyOtp from './components/VerifyOtp';
 import HeaderLayout from './layouts/HeaderLayout';
+import CreateDemandePage from './pages/CreateDemandePage';
+import DemandesPage from './pages/DemandesPage'; // Import the DemandesPage
 
 const App = () => {
   const { user, mode } = useSelector((state) => state.auth);
@@ -42,16 +43,23 @@ const App = () => {
         <Router>
           <Routes>
             <Route element={<HeaderLayout />}>
-              {/* <Route path="/" element={user ? <HomePage /> : <Navigate to="/signup" />} /> */}
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={user ? <HomePage /> : <Navigate to="/signup" />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/verify-otp" element={<VerifyOtp />} />
+              <Route path="/create-demande" element={<CreateDemandePage />} />
+              <Route path="/demandes" element={<DemandesPage />} /> {/* Add route for DemandesPage */}
             </Route>
           </Routes>
         </Router>
       </ThemeProvider>
-      <ToastContainer theme={mode === 'light' ? 'light' : 'dark'} autoClose={3000} position="top-center" pauseOnHover={false} pauseOnFocusLoss={false} />
+      <ToastContainer
+        theme={mode === 'light' ? 'light' : 'dark'}
+        autoClose={3000}
+        position="top-center"
+        pauseOnHover={false}
+        pauseOnFocusLoss={false}
+      />
     </>
   );
 };
