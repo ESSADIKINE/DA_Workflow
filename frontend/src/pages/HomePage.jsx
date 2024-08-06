@@ -1,11 +1,20 @@
 import React from 'react';
+import HeroSection from '../components/HeroSection';
+import AboutUs from '../components/AboutUs';
+import Testimonials from '../components/Testimonials';
+import CallToAction from '../components/CallToAction';
+import Footer from '../components/Footer';
 
-const HomePage = () => {
-  return (
-    <div>
-      <h1>Welcome to the DecayeuxSTM</h1>
-    </div>
-  );
+const Home = () => {
+    return (
+        <div>
+            <HeroSection />
+            <AboutUs />
+            <Testimonials />
+            <CallToAction />
+            <Footer />
+        </div>
+    );
 };
 
-export default HomePage;
+export default Home;

@@ -1,4 +1,3 @@
-// src/redux/user/authApi.js
 const API_BASE_URL = 'http://localhost:3000/api/v1/auth';
 
 export const checkEmail = async (email) => {
@@ -65,11 +64,12 @@ export const login = async (email, password) => {
   return response.json();
 };
 
-export const signOutApi = async () => {
+export const signOutApi = async (token) => {
   const response = await fetch(`${API_BASE_URL}/logout`, {
-    method: 'POST',
+    method: 'GET', // Change this to POST
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
     },
   });
 
@@ -77,5 +77,5 @@ export const signOutApi = async () => {
     throw new Error('Failed to log out');
   }
 
-  return response.json();
+  return { status: 'success' }; // Ensure it returns a success status
 };

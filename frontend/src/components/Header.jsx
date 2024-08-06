@@ -1,32 +1,49 @@
-// src/components/Header.jsx
 import React, { useEffect, useState } from 'react';
 import { useTheme } from "@emotion/react";
 import {
-  Avatar, Box, Button, CircularProgress, Container, IconButton, Link, Menu, MenuItem, Stack, Tooltip
+  Avatar, Box, Button, CircularProgress, Container, IconButton, Menu, MenuItem, Stack, Tooltip
 } from "@mui/material";
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import PostAddIcon from '@mui/icons-material/PostAdd';
-import SearchIcon from '@mui/icons-material/Search';
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink, useLocation } from "react-router-dom";
-import { setMode, signOut } from "../redux/user/userSlice";
-import { signOutApi } from "../redux/user/authApi";
-import SearchInputModal from "./SearchInputModal";
+import { setMode, logoutThunk } from "../redux/user/userSlice";
+import blogLogoGifL from '../assets/LogoL.gif';
+import blogLogoGifD from '../assets/LogoD.gif';
+
+const stringAvatar = (name) => {
+  const initials = name.split(' ').map(n => n[0]).join('');
+  return {
+    sx: {
+      bgcolor: stringToColor(name),
+    },
+    children: initials,
+  };
+};
+
+const stringToColor = (string) => {
+  let hash = 0;
+  let i;
+  for (i = 0; i < string.length; i += 1) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let color = '#';
+  for (i = 0; i < 3; i += 1) {
+    const value = (hash >> (i * 8)) & 0xFF;
+    color += `00${value.toString(16)}`.slice(-2);
+  }
+  return color;
+};
 
 const Header = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { pathname } = useLocation();
-  const { user, mode } = useSelector((state) => state.auth);
+  const { user, token, mode } = useSelector((state) => state.auth);
 
-  const [openSearchModal, setOpenSearchModal] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const open = Boolean(anchorEl);
-
-  const handleOpenSearchModal = () => setOpenSearchModal(true);
-  const handleCloseSearchModal = () => setOpenSearchModal(false);
 
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
@@ -39,8 +56,7 @@ const Header = () => {
   const handleSignOut = async () => {
     setIsLoading(true);
     try {
-      await signOutApi();
-      dispatch(signOut());
+      await dispatch(logoutThunk(token));
     } catch (error) {
       console.error("Error", error.message);
     } finally {
@@ -51,44 +67,39 @@ const Header = () => {
   useEffect(() => {
     return () => setAnchorEl(null);
   }, [pathname]);
+
   return (
-    <Box position={"fixed"} top={0} left={0} right={0} sx={{ backgroundColor: theme.palette.background.default, zIndex: 100, py: "10px" }}>
+    <Box position={"fixed"} top={0} left={0} right={0} sx={{ backgroundColor: theme.palette.background.paper, zIndex: 100, py: "10px" }}>
       <Container maxWidth="md">
         <Stack flexDirection={"row"} justifyContent={"space-between"} alignItems={"center"}>
-          <Link component={RouterLink} to={"/"} variant={"h5"} sx={{ textDecoration: "none", color: theme.palette.text.primary, "&:hover": { color: theme.palette.primary.main}}}>
-            DecayeuxSTM
-          </Link>
+          <RouterLink to={"/"}>
+            {mode === "light" ? <img src={blogLogoGifL} alt="Blog Logo" style={{ height: '50px' }} /> : <img src={blogLogoGifD} alt="Blog Logo" style={{ height: '50px' }} />}
+          </RouterLink>
           <Stack flexDirection={"row"} alignItems={"center"} gap={3}>
-            <Tooltip title="Search" arrow>
-              <IconButton onClick={handleOpenSearchModal} sx={{ color: theme.palette.mode === "light" ? "#424242" : "#9e9e9e" }}>
-                <SearchIcon />
+            <Tooltip title="Switch theme" arrow>
+              <IconButton onClick={() => dispatch(setMode())} sx={{ color: theme.palette.text.primary }}>
+                {mode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
               </IconButton>
             </Tooltip>
-            <SearchInputModal open={openSearchModal} handleClose={handleCloseSearchModal} />
             {!user ? (
               <>
-                <Link component={RouterLink} to={"/signup"} variant="body1">
+                <Button component={RouterLink} to={"/signup"} variant="contained">
                   Sign Up
-                </Link>
-                <Link component={RouterLink} to={"/signin"} variant="body1">
+                </Button>
+                <Button component={RouterLink} to={"/signin"} variant="contained">
                   Sign In
-                </Link>
+                </Button>
               </>
             ) : (
               <>
                 <Tooltip title="Create Post" arrow>
-                  <Button component={RouterLink} to={"/create-post"} variant="contained" sx={{ height: "32px", display: "flex", alignItems: "center", gap: "3px" }}>
-                    <PostAddIcon />
+                  <Button component={RouterLink} to={"/create-demande"} variant="contained">
+                    New Demande
                   </Button>
                 </Tooltip>
-                <Tooltip title="Switch theme" arrow>
-                  <IconButton onClick={() => dispatch(setMode())} sx={{ color: theme.palette.text.primary }}>
-                    {mode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
-                  </IconButton>
-                </Tooltip>
-                <IconButton onClick={handleClick}>
-                  <Avatar src={user.profilePicture} sx={{ width: 32, height: 32 }} />
-                </IconButton>
+                <Button onClick={handleClick}>
+                  <Avatar {...stringAvatar(`${user.Prenom} ${user.Nom}`)} />
+                </Button>
                 <Menu
                   elevation={3}
                   anchorEl={anchorEl}
@@ -104,9 +115,9 @@ const Header = () => {
                     }
                   }}
                 >
-                  <MenuItem component={RouterLink} to={`/profile/${user.username}`}>Profile</MenuItem>
-                  <MenuItem component={RouterLink} to={"/your-posts?page=1"}>Your Posts</MenuItem>
-                  {user.isAdmin && (
+                  <MenuItem component={RouterLink} to={`/profile/${user.Nom}-${user.Prenom}`}>Profile</MenuItem>
+                  <MenuItem component={RouterLink} to={"/your-demandes?page=1"}>Your Demandes</MenuItem>
+                  {(user.isAdmin || user.isAchteur || user.isDG) && (
                     <MenuItem component={RouterLink} to={`/dashboard`}>Dashboard</MenuItem>
                   )}
                   <MenuItem onClick={handleSignOut} disabled={isLoading}>

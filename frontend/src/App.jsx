@@ -23,11 +23,11 @@ const App = () => {
         main: '#e19c23',
       },
       secondary: {
-        main: '#dc004e',
+        main: '#adadad',
       },
       background: {
-        default: mode === 'light' ? '#f4f6f8' : '#121212',
-        paper: mode === 'light' ? '#ffffff' : '#1d1d1d',
+        default: mode === 'light' ? '#f4f6f8' : '#1d1d1d',
+        paper: mode === 'light' ? '#ffffff' : '#000000',
       },
       text: {
         primary: mode === 'light' ? '#000000' : '#ffffff',
@@ -43,13 +43,13 @@ const App = () => {
         <Router>
           <Routes>
             <Route element={<HeaderLayout />}>
-              <Route path="/" element={user ? <HomePage /> : <Navigate to="/signup" />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/signin" element={<SignInPage />} />
-              <Route path="/verify-otp" element={<VerifyOtp />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/create-demande" element={<CreateDemandePage />} />
-              <Route path="/demandes" element={<DemandesPage />} /> {/* Add route for DemandesPage */}
+              <Route path="/demandes" element={<DemandesPage />} />
             </Route>
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
           </Routes>
         </Router>
       </ThemeProvider>

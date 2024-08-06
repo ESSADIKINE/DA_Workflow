@@ -1,9 +1,9 @@
-// src/redux/user/userSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { checkEmail, sendOtp, signUp, login, signOutApi } from './authApi';
 
-// Load user info from localStorage
+// Load user info and mode from localStorage
 const userInfo = JSON.parse(localStorage.getItem('user-info')) || {};
+const savedMode = localStorage.getItem('mode') || 'light';
 
 // Async thunk for checking if email exists
 export const checkEmailThunk = createAsyncThunk(
@@ -57,10 +57,23 @@ export const loginThunk = createAsyncThunk(
   }
 );
 
+// Async thunk for logging out
+export const logoutThunk = createAsyncThunk(
+  'auth/logout',
+  async (_, thunkAPI) => {
+    try {
+      const response = await signOutApi();
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue({ error: error.message });
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: 'auth',
   initialState: {
-    mode: 'light',
+    mode: savedMode,
     user: userInfo.user || null,
     token: userInfo.token || null,
     otp: '',
@@ -71,6 +84,7 @@ const userSlice = createSlice({
   reducers: {
     setMode: (state) => {
       state.mode = state.mode === 'light' ? 'dark' : 'light';
+      localStorage.setItem('mode', state.mode);
     },
     setOtp: (state, action) => {
       state.otp = action.payload.otp;
@@ -143,6 +157,19 @@ const userSlice = createSlice({
         localStorage.setItem('user-info', JSON.stringify({ user: state.user, token: state.token }));
       })
       .addCase(loginThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.error;
+      })
+      .addCase(logoutThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(logoutThunk.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        localStorage.removeItem('user-info');
+        state.loading = false;
+      })
+      .addCase(logoutThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload.error;
       });
