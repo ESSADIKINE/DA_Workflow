@@ -43,7 +43,7 @@ const Header = () => {
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const open = Boolean(anchorEl);
+  const isOpen = Boolean(anchorEl);
 
   const handleClick = (e) => {
     setAnchorEl(e.currentTarget);
@@ -69,7 +69,7 @@ const Header = () => {
   }, [pathname]);
 
   return (
-    <Box position={"fixed"} top={0} left={0} right={0} sx={{ backgroundColor: theme.palette.background.paper, zIndex: 100, py: "10px" }}>
+    <Box position={"fixed"} top={0} left={0} right={0} sx={{ backgroundColor: theme.palette.background.paper, zIndex: 100, py: "5px" }}>
       <Container maxWidth="md">
         <Stack flexDirection={"row"} justifyContent={"space-between"} alignItems={"center"}>
           <RouterLink to={"/"}>
@@ -103,7 +103,7 @@ const Header = () => {
                 <Menu
                   elevation={3}
                   anchorEl={anchorEl}
-                  open={open}
+                  open={isOpen}
                   onClose={handleClose}
                   sx={{
                     "& .MuiMenu-list": {

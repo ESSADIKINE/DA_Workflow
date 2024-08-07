@@ -1,12 +1,15 @@
-// src/redux/store.js
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './user/userSlice';
-import demandeReducer from './demandes/demandeSlice'; // Import the demande slice
+import demandeReducer from './demandes/demandeSlice';
+import articleReducer from './articles/articleSlice';
+import fournisseurReducer from './fournisseurs/fournisseurSlice'; // Import the fournisseur slice
 
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    demande: demandeReducer, // Add the demande reducer
+    demande: demandeReducer,
+    article: articleReducer,
+    fournisseur: fournisseurReducer, // Add the fournisseur reducer
   },
 });
 

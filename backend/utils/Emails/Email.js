@@ -1,3 +1,5 @@
+// utils/Emails/Email.js
+
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
@@ -24,6 +26,6 @@ export const sendEmail = async (to, subject, html) => {
         console.log(`Email sent to ${to} with subject "${subject}"`);
     } catch (err) {
         console.error(`Failed to send email to ${to}: ${err.message}`);
+        throw err;
     }
 };
-

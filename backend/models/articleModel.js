@@ -6,9 +6,8 @@ export const getAllArticlesFromDB = async () => {
         const pool = await getConnection();
         const query = `
             SELECT [AR_Ref], [AR_Design], [FA_CodeFamille], [AR_UnitePoids], 
-                   [AR_PoidsNet], [AR_PoidsBrut], [AR_UniteVen], [AR_SuiviStock], 
-                   [AR_Nomencl], [AR_CodeBarre], [AR_Nature], [cbMarq], 
-                   [cbModification], [cbCreation]  
+                   [AR_PoidsNet], [AR_UniteVen], [AR_SuiviStock], 
+                   [AR_Nomencl], [AR_CodeBarre], [AR_Nature]
             FROM [DSTM].[dbo].[F_ARTICLE]
         `;
         const result = await pool.request().query(query);
