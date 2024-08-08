@@ -91,3 +91,27 @@ export const getArticlesBySelection = async (key) => {
 
   return response.json();
 };
+
+export const refuseDemande = async (id) => {
+  const token = getToken();
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}/refuse`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error refusing demande:', errorData);
+      throw new Error('Failed to refuse demande');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
+};

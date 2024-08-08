@@ -27,9 +27,10 @@ export const getDemandesFromDB = async () => {
     const pool = await getConnection();
     const result = await pool.request().query(`
       SELECT 
+        l.DA_id, 
         u.Nom, 
         u.Prenom, 
-        u.Email, 
+        u.Email,
         l.AR_Ref, 
         l.AR_Design, 
         l.Qty,
@@ -37,10 +38,11 @@ export const getDemandesFromDB = async () => {
         l.Date_De_Creation, 
         l.Demande_statut
       FROM 
-        DA_LIST l
+        DA_LIST AS l
       JOIN 
-        DA_USERS u ON l.email = u.Email;
+        DA_USERS AS u ON l.email = u.Email;
     `);
+    console.log('Demandes fetched from database:', result.recordset);
     return result.recordset;
   } catch (err) {
     console.log(`MODEL GET DEMANDES: ${err.message}`);
@@ -55,7 +57,8 @@ export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
       SELECT 
         u.Nom, 
         u.Prenom, 
-        u.Email, 
+        u.Email,
+        l.DA_id
         l.AR_Ref, 
         l.AR_Design, 
         l.Qty,
@@ -136,5 +139,19 @@ export const getArticlesInSelection = async (key) => {
   }
 };
 
-
-
+export const refuseDemandeInDB = async (id) => {
+  try {
+    const pool = await getConnection();
+    console.log(`Connecting to DB to refuse demande with DA_id: ${id}`);
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .input('Demande_statut', sql.VarChar(100), 'Refuser')
+      .query(`UPDATE DA_LIST SET Demande_statut = @Demande_statut WHERE DA_id = @id;
+              SELECT * FROM DA_LIST WHERE DA_id = @id;`);
+    console.log(`DB response:`, result.recordset[0]);
+    return result.recordset[0];
+  } catch (err) {
+    console.log(`MODEL REFUSE DEMANDE: ${err.message}`);
+    throw new Error('Database error during demande refusal');
+  }
+};

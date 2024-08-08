@@ -5,11 +5,12 @@ import {
   updateDemandeInDB,
   deleteDemandeInDB,
   getArticlesInSelection,
+  refuseDemandeInDB
 } from '../models/demandesModel.js';
 
 export const createDemande = async (req, res) => {
   try {
-    console.log(req.user);
+    console.log('Received request to create demande:', req.body);
     const { AR_Ref, AR_Design, Qty, description, Demande_statut } = req.body;
     const email = req.user.Email;
     const newDemande = await createDemandeInDB({
@@ -87,16 +88,10 @@ export const updateDemande = async (req, res) => {
 export const deleteDemande = async (req, res) => {
   try {
     const { id } = req.params;
-    const rowsAffected = await deleteDemandeInDB(id);
-    if (rowsAffected === 0) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Demande not found',
-      });
-    }
-    res.status(200).json({
+    const result = await deleteDemandeInDB(id);
+    res.status(204).json({
       status: 'success',
-      message: 'Demande deleted',
+      data: result,
     });
   } catch (err) {
     console.log(`DELETE DEMANDE: ${err.message}`);
@@ -119,6 +114,23 @@ export const articlesBySelection = async (req, res) => {
     });
   } catch (err) {
     console.log(`SEARCH ARTICLE: ${err.message}`);
+    res.status(500).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+
+export const refuseDemande = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const refusedDemande = await refuseDemandeInDB(id);
+    res.status(200).json({
+      status: 'success',
+      data: refusedDemande,
+    });
+  } catch (err) {
+    console.log(`REFUSE DEMANDE: ${err.message}`);
     res.status(500).json({
       status: 'fail',
       message: err.message,

@@ -5,6 +5,7 @@ import {
   updateDemande,
   deleteDemande,
   getArticlesBySelection,
+  refuseDemande as refuseDemandeAPI
 } from './demandeApi';
 
 export const createDemandeThunk = createAsyncThunk('demande/createDemande', async (demande, thunkAPI) => {
@@ -52,6 +53,16 @@ export const getArticlesBySelectionThunk = createAsyncThunk('demande/getArticles
   }
 });
 
+export const refuseDemandeThunk = createAsyncThunk('demande/refuseDemande', async (id, thunkAPI) => {
+  try {
+    const response = await refuseDemandeAPI(id);
+    return response;
+  } catch (error) {
+    console.error('Thunk error:', error);
+    return thunkAPI.rejectWithValue({ error: error.message });
+  }
+});
+
 const demandeSlice = createSlice({
   name: 'demande',
   initialState: {
@@ -90,7 +101,7 @@ const demandeSlice = createSlice({
       })
       .addCase(updateDemandeThunk.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.demandes.findIndex((demande) => demande.id === action.payload.data.id);
+        const index = state.demandes.findIndex((demande) => demande.DA_id === action.payload.data.DA_id);
         if (index !== -1) {
           state.demandes[index] = action.payload.data;
         }
@@ -104,7 +115,7 @@ const demandeSlice = createSlice({
       })
       .addCase(deleteDemandeThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.demandes = state.demandes.filter((demande) => demande.id !== action.meta.arg);
+        state.demandes = state.demandes.filter((demande) => demande.DA_id !== action.meta.arg);
       })
       .addCase(deleteDemandeThunk.rejected, (state, action) => {
         state.loading = false;
@@ -118,6 +129,20 @@ const demandeSlice = createSlice({
         state.articles = action.payload.data;
       })
       .addCase(getArticlesBySelectionThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.error;
+      })
+      .addCase(refuseDemandeThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(refuseDemandeThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.demandes.findIndex((demande) => demande.DA_id === action.payload.data.DA_id);
+        if (index !== -1) {
+          state.demandes[index] = action.payload.data;
+        }
+      })
+      .addCase(refuseDemandeThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload.error;
       });
