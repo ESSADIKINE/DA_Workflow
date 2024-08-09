@@ -8,6 +8,7 @@ import fournisseurRoutes from './routes/fournisseurRoutes.js';
 import demandesRoutes from './routes/demandesRoutes.js';
 import daRoutes from './routes/daRoutes.js';
 import bcRoutes from './routes/bcRoutes.js';
+import additionalRoutes from './routes/additionalRoutes.js'
 import config from './config/config.js';
 import { sendEmail } from './utils/Emails/Email.js'; // Ensure the path is correct
 
@@ -38,6 +39,7 @@ app.use('/api/v1', fournisseurRoutes);
 app.use('/api/v1', demandesRoutes);
 app.use('/api/v1', daRoutes);
 app.use('/api/v1', bcRoutes);
+app.use('/api/v1', additionalRoutes);
 
 
 const port = config.PORT || 3000;

@@ -129,10 +129,10 @@ const getExpeditIndex = async (pool, expeditIntitule) => {
 
 const getAffaireNo = async (pool, CA_Intitule) => {
     const request = new sql.Request(pool);
-    const result = await request.input('CA_Intitule', sql.NVarChar, CA_Intitule).query(`
+    const result = await request.input('Affaire', sql.NVarChar, Affaire).query(`
         SELECT CA_Num
         FROM F_COMPTEA
-        WHERE CA_Intitule = @CA_Intitule
+        WHERE CA_Num = LEFT(@Affaire, CHARINDEX(' -', @Affaire) - 1)
     `);
     console.log(result);
     if (result.recordset.length > 0) {
@@ -249,6 +249,8 @@ const insertArticlesOneByOne = async (articles, transaction, newDA, pool) => {
         )
     `;
 
+    const demandeursAndRefs = [];
+
     for (let i = 0; i < articles.length; i++) {
         const article = articles[i];
         console.log(`Processing article ${i + 1} of ${articles.length}`);
@@ -299,10 +301,12 @@ const insertArticlesOneByOne = async (articles, transaction, newDA, pool) => {
             .input('DL_MontantTTC', sql.Numeric(24, 6), DL_MontantTTC)
             .query(lineQuery);
         console.log(`Inserted article with DL_No: ${dlNo.dlNo}`);
+
+        demandeursAndRefs.push({ Demendeur: article.Demendeur, AR_Ref: articleRef });
     }
 
     console.log('Inserted into F_DOCLIGNE successfully');
-    return { totalHTNet, totalTTC };
+    return { totalHTNet, totalTTC, demandeursAndRefs };
 };
 
 export const addNewDAInDB = async (newDA, articles) => {
@@ -433,6 +437,20 @@ export const addNewDAInDB = async (newDA, articles) => {
 
         await transaction.request().query('ENABLE TRIGGER [TG_INS_F_DOCLIGNE] ON [F_DOCLIGNE]');
         console.log('Trigger enabled');
+
+        // Fetch DA_id of affected rows and run AcceptDemandeInDB for each
+        for (const { Demendeur, AR_Ref } of total.demandeursAndRefs) {
+            await pool.request()
+                .input('Demendeur', sql.NVarChar, Demendeur)
+                .input('AR_Ref', sql.NVarChar, AR_Ref)
+                .query(`
+                    UPDATE DA_LIST
+                    SET Demande_statut = 'Accepter'
+                    WHERE AR_Ref = @AR_Ref AND email IN (
+                        SELECT email FROM DA_USERS WHERE CONCAT(Nom, ' ', Prenom) = @Demendeur
+                    )
+                `);
+        }
 
         await transaction.commit();
         console.log('Transaction committed');
@@ -665,7 +683,7 @@ export const updateDocLigneInDB = async (doPiece, dlLigne, updatedArticle) => {
                 DO_Piece = @DO_Piece AND
                 DL_Ligne = @DL_Ligne;
 
-            UPDATE F_DOCENTETE 
+            UPDATE F_DOCENTETE
             SET DO_TotalHTNet = @DO_TotalHTNet, DO_TotalHT = @DO_TotalHTNet, DO_TotalTTC = @DO_TotalTTC, DO_NetAPayer = @DO_TotalTTC
             WHERE DO_Piece = @DO_Piece;
         `;

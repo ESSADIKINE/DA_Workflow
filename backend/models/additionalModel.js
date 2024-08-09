@@ -1,157 +1,102 @@
 import getConnection from '../config/dbsql.js';
 import sql from 'mssql';
 
-export const createDemandeInDB = async (demande) => {
-  try {
-    const { AR_Ref, AR_Design, Qty, description, Demande_statut = 'Demander', email } = demande;
-    const pool = await getConnection();
-    const result = await pool.request()
-      .input('AR_Ref', sql.VarChar(50), AR_Ref)
-      .input('AR_Design', sql.VarChar(50), AR_Design)
-      .input('Qty', sql.Int, Qty)
-      .input('description', sql.VarChar(255), description)
-      .input('Demande_statut', sql.VarChar(100), Demande_statut)
-      .input('email', sql.VarChar(100), email)
-      .query(`INSERT INTO DA_LIST (AR_Ref, AR_Design, Qty, description, Demande_statut, email) 
-              VALUES (@AR_Ref, @AR_Design, @Qty, @description, @Demande_statut, @email); 
-              SELECT * FROM DA_LIST WHERE DA_id = SCOPE_IDENTITY();`);
-    return result.recordset[0];
-  } catch (err) {
-    console.log(`MODEL CREATE DEMANDE: ${err.message}`);
-    throw new Error('Database error during demande creation');
-  }
+export const getCollaborateur = async () => {
+  console.log('Fetching Collaborateur');
+  const pool = await getConnection();
+  const query = "SELECT CONCAT([CO_Nom], ' ', [CO_Prenom]) AS NomPrenom FROM F_COLLABORATEUR WHERE [CO_NO] = 10 OR [CO_NO] = 1";
+  const result = await pool.request().query(query);
+  console.log('Fetched Collaborateur:', result.recordset);
+  return result.recordset;
 };
 
-export const getDemandesFromDB = async () => {
-  try {
-    const pool = await getConnection();
-    const result = await pool.request().query(`
-      SELECT 
-        u.Nom, 
-        u.Prenom, 
-        u.Email,
-        l.DA_id,
-        l.AR_Ref, 
-        l.AR_Design, 
-        l.Qty,
-        l.description,
-        l.Date_De_Creation, 
-        l.Demande_statut
-      FROM 
-        DA_LIST l
-      JOIN 
-        DA_USERS u ON l.email = u.Email;
-    `);
-    console.log('Demandes fetched from database:', result.recordset);
-    return result.recordset;
-  } catch (err) {
-    console.log(`MODEL GET DEMANDES: ${err.message}`);
-    throw new Error('Database error during fetching all demandes');
-  }
+export const getAllCT_Num = async () => {
+  console.log('Fetching CT_Num');
+  const pool = await getConnection();
+  const query = "SELECT DISTINCT CT_Num FROM F_ARTFOURNISS";
+  const result = await pool.request().query(query);
+  console.log('Fetched CT_Num:', result.recordset);
+  return result.recordset;
 };
 
-export const getDemandeBySearchInDB = async (AR_Ref, AR_Design) => {
-  try {
-    const pool = await getConnection();
-    let query = `
-      SELECT 
-        u.Nom, 
-        u.Prenom, 
-        u.Email,
-        l.DA_id,
-        l.AR_Ref, 
-        l.AR_Design, 
-        l.Qty,
-        l.description,
-        l.Date_De_Creation, 
-        l.Demande_statut
-      FROM 
-        DA_LIST l
-      JOIN 
-        DA_USERS u ON l.email = u.Email
-      WHERE 1=1
-    `;
-    
-    if (AR_Ref) query += ` AND l.AR_Ref LIKE '%${AR_Ref}%'`;
-    if (AR_Design) query += ` AND l.AR_Design LIKE '%${AR_Design}%'`;
-
-    const result = await pool.request().query(query);
-    console.log('Demandes fetched by search from database:', result.recordset);
-    return result.recordset;
-  } catch (err) {
-    console.log(`MODEL SEARCH DEMANDES: ${err.message}`);
-    throw new Error('Database error during demande search');
-  }
+export const getDO_Devise = async () => {
+  console.log('Fetching DO_Devise');
+  const pool = await getConnection();
+  const query = "SELECT CONCAT([cbIndice], ')', [D_Intitule]) as D_Intitule FROM P_DEVISE WHERE D_Intitule <> ''";
+  const result = await pool.request().query(query);
+  console.log('Fetched DO_Devise:', result.recordset);
+  return result.recordset;
 };
 
-export const updateDemandeInDB = async (id, demande) => {
-  try {
-    const { AR_Ref, AR_Design, Qty, description, Demande_statut, email } = demande;
-    const pool = await getConnection();
-    const result = await pool.request()
-      .input('AR_Ref', sql.VarChar(50), AR_Ref)
-      .input('AR_Design', sql.VarChar(50), AR_Design)
-      .input('Qty', sql.Int, Qty)
-      .input('description', sql.VarChar(255), description)
-      .input('Demande_statut', sql.VarChar(100), Demande_statut)
-      .input('email', sql.VarChar(100), email)
-      .input('id', sql.Int, id)
-      .query(`UPDATE DA_LIST SET AR_Ref = @AR_Ref, AR_Design = @AR_Design, Qty = @Qty, 
-              description = @description, Demande_statut = @Demande_statut, email = @email
-              WHERE DA_id = @id;
-              SELECT * FROM DA_LIST WHERE DA_id = @id;`);
-    return result.recordset[0];
-  } catch (err) {
-    console.log(`MODEL UPDATE DEMANDE: ${err.message}`);
-    throw new Error('Database error during demande update');
-  }
+export const getAllDepot = async () => {
+  console.log('Fetching Depot');
+  const pool = await getConnection();
+  const query = "SELECT DISTINCT DE_Intitule FROM F_DEPOT";
+  const result = await pool.request().query(query);
+  console.log('Fetched Depot:', result.recordset);
+  return result.recordset;
 };
 
-export const deleteDemandeInDB = async (id) => {
-  try {
-    const pool = await getConnection();
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .query('DELETE FROM DA_LIST WHERE DA_id = @id;');
-    return result.rowsAffected[0];
-  } catch (err) {
-    console.log(`MODEL DELETE DEMANDE: ${err.message}`);
-    throw new Error('Database error during demande deletion');
-  }
+export const getExpedition = async () => {
+  console.log('Fetching Expedition');
+  const pool = await getConnection();
+  const query = "SELECT DISTINCT E_Intitule FROM P_EXPEDITION WHERE E_Intitule <> ''";
+  const result = await pool.request().query(query);
+  console.log('Fetched Expedition:', result.recordset);
+  return result.recordset;
 };
 
-export const getArticlesInSelection = async (key) => {
+export const getAllAffaire = async () => {
+  console.log('Fetching Affaire');
+  const pool = await getConnection();
+  const query = "SELECT CONCAT([CA_Num], ' - ', [CA_Intitule]) AS Affaire FROM F_COMPTEA";
+  const result = await pool.request().query(query);
+  console.log('Fetched Affaire:', result.recordset);
+  return result.recordset;
+};
+
+export const getTaxe = async () => {
+  console.log('Fetching Taxe');
+  const pool = await getConnection();
+  const query = "SELECT CONCAT(CAST(TA_Taux AS INT), '%') AS Taxe FROM F_TAXE WHERE TA_Code LIKE 'TR%A' ORDER BY CAST(TA_Taux AS INT) DESC";
+  const result = await pool.request().query(query);
+  console.log('Fetched Taxe:', result.recordset);
+  return result.recordset;
+};
+
+export const getAllEU_Enumere = async () => {
+  console.log('Fetching EU_Enumere');
+  const pool = await getConnection();
+  const query = "SELECT DISTINCT U_Intitule AS Uneration FROM P_UNITE WHERE U_Intitule <> ''";
+  const result = await pool.request().query(query);
+  console.log('Fetched EU_Enumere:', result.recordset);
+  return result.recordset;
+};
+
+export const getAllDemandeur = async () => {
+  console.log('Fetching Demandeur');
+  const pool = await getConnection();
+  const query = "SELECT CONCAT([Nom], ' ', [Prenom]) AS NomPrenom FROM DA_USERS";
+  const result = await pool.request().query(query);
+  console.log('Fetched Demandeur:', result.recordset);
+  return result.recordset;
+};
+
+export const getArticlesDemander = async () => {
   try {
     const pool = await getConnection();
     const query = `
-      SELECT CONCAT([AR_Ref], ' - ', [AR_Design]) AS article
-      FROM F_ARTICLE
-      WHERE AR_Ref LIKE @key OR AR_Design LIKE @key
+      SELECT CONCAT(l.[AR_Ref], ' - ', l.[AR_Design], ', Demander par (', u.[Nom], ' ', u.[Prenom], ')') AS articleDemander
+      FROM DA_LIST l
+      JOIN DA_USERS u ON l.email = u.Email
+      WHERE l.[Demande_statut] = 'Demander'
     `;
-    const result = await pool.request()
-      .input('key', sql.NVarChar, `%${key}%`)
-      .query(query);
+    const result = await pool.request().query(query);
     console.log("Database query result:", result.recordset); // Log database query result
-    return result.recordset.map(record => record.article);
+    return result.recordset; // Corrected the property access
   } catch (err) {
-    console.log(`MODEL SEARCH ARTICLES: ${err.message}`);
+    console.log(`MODEL SEARCH ARTICLES:`, err);
     throw new Error('Database error during article search');
   }
 };
 
-export const refuseDemandeInDB = async (id) => {
-  try {
-    const pool = await getConnection();
-    console.log(`Connecting to DB to refuse demande with DA_id: ${id}`);
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('Demande_statut', sql.VarChar(100), 'Refuser')
-      .query(`UPDATE DA_LIST SET Demande_statut = @Demande_statut WHERE DA_id = @id;
-              SELECT * FROM DA_LIST WHERE DA_id = @id;`);
-    console.log(`DB response:`, result.recordset[0]);
-    return result.recordset[0];
-  } catch (err) {
-    console.log(`MODEL REFUSE DEMANDE: ${err.message}`);
-    throw new Error('Database error during demande refusal');
-  }
-};

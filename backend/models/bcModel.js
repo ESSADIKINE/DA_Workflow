@@ -27,7 +27,7 @@ export const getAllBCInBriefFromDB = async () => {
         const pool = await getConnection();
         const query = `
             SELECT 
-                DO_Domaine, DO_Type, DO_Piece, DO_Date, DO_Ref, DO_Tiers, CO_No, DO_Devise, DO_Cours, DE_No, CT_NumPayeur,  
+                DO_Domaine, DO_Type, DO_Piece, DO_Date, DO_Ref, DO_Tiers, CO_No, DO_Devise, DO_Cours, DE_No, CT_NumPayeur, 
                 DO_Expedit, CA_Num, DO_Coord01, DO_DateLivr, DO_Statut, DO_Heure, CA_No, DO_TotalHT, DO_DocType, DO_TotalHTNet, 
                 DO_TotalTTC, DO_NetAPayer, DUM, P_BRUT
             FROM F_DOCENTETE 

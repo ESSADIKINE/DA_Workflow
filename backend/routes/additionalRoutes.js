@@ -5,24 +5,24 @@ import {
   getDO_Devise,
   getAllDepot,
   getExpedition,
-  getAllCA_Intitule,
+  getAllAffaire,
   getTaxe,
   getAllEU_Enumere,
   getAllDemandeur,
-  articlesDemander
-} from './controllers/additionalController';
+  articlesDemander,
+} from '../controllers/additionalController.js';
 
 const router = express.Router();
 
-router.get('/CO_No', getCollaborateur);
-router.get('/CT_Num', getAllCT_Num);
-router.get('/DO_Devise', getDO_Devise);
-router.get('/DE_No', getAllDepot);
-router.get('/DO_Expedit', getExpedition);
-router.get('/CA_Num', getAllCA_Intitule);
-router.get('/DL_Taxe1', getTaxe);
-router.get('/EU_Enumere', getAllEU_Enumere);
-router.get('/Demandeur', getAllDemandeur);
-router.get('/Design', articlesDemander);
+router.get('/collaborateur', getCollaborateur);
+router.get('/ct_num', getAllCT_Num);          
+router.get('/do_devise', getDO_Devise);       
+router.get('/depot', getAllDepot);            
+router.get('/expedition', getExpedition);     
+router.get('/affaire', getAllAffaire);
+router.get('/taxe', getTaxe);                 
+router.get('/eu_enumere', getAllEU_Enumere);  
+router.get('/demandeur', getAllDemandeur);    
+router.get('/design', articlesDemander);
 
 export default router;
